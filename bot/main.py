@@ -1,110 +1,47 @@
-import os, time, random
+import os, time, random, requests
 import discord, asyncio
-from cogs import presence
+from discord.ext import commands
+from cogs import presence, fuzzy
 
-client = discord.ext.commands.Bot('!')
+client = commands.Bot(command_prefix="!")
 
 __TOKEN = os.getenv("DISCORD_TOKEN")
 
-su_ex = """```
-Explanation: Shine can be jumpcancelled. During the startup of your jump, you can input an
-upsmash, which cancels your jump. So if you have momentum out of the shine, you can carry
-that into your upsmash.
+@client.command()
+@commands.has_role("Members")
+async def drag(ctx, *args):
+    if (str(ctx.guild.id) in os.getenv("SERVERS_DRAG_PERM")): # Custom Drag command
+        if (ctx.author.voice and ctx.author.voice.channel):
+            for moveme in ctx.message.mentions:
+                if not moveme: continue
+                role = discord.utils.get(ctx.channel.guild.roles, name='Members')
+                if not role in moveme.roles or ctx.message.author.server_permissions.administrator:
+                    if moveme.voice and moveme.voice.channel:
+                        await moveme.move_to(ctx.author.voice.channel,reason="<@"+str(ctx.author.display_name)+"> used drag command.")
+                        await ctx.message.add_reaction("✅")
+                    else:
+                        await ctx.send("<@"+str(moveme.id)+"> must join a voice channel.")
+            else:
+                await ctx.send("<@"+str(ctx.message.author.id)+"> must join a voice channel.")
 
-Inputs:
-1. Neutral Special
-2. Jump
-3. Upsmash
-``` 
-"""
-
-pf_ex = """```
-Explanation: Down Special can be cancelled with an airdodge. During the startup up Down B,
-you can input an airdodge, which cancels the dive with a flip. If you flip towards the stage,
-do a quarter circle back, you will flip towards the stage and then when you land, you'll roll
-back off the platform quickly.
-
-Inputs:
-1. Down Special
-2. Air Dodge
-3. Quarter Circle Back
-```"""
-
-resources = [
-    [["!shine upstrong", "!shine ustrong", "!shine upsmash", "!shine usmash"],"https://gfycat.com/kaleidoscopicbeneficialflicker  *(right trigger bound to strong)*\n"+su_ex],
-    [["!shine upstrong gc","!shine ustrong gc","!shine upstrong gcc","!shine ustrong gcc"],"https://gfycat.com/meatydimpledamericancicada  *(z bound to strong)*\n"+su_ex],
-    [["!pityflip","!pity flip"],"https://gfycat.com/whisperedeagerbuck\n"+pf_ex],
-    [["!pityflip gcc","!pity flip gcc"],"https://gfycat.com/grayhighlevelarrowworm\n"+pf_ex],
-    [["!shine","!shine angles"],"https://i.imgur.com/Zf6Ywes.png"],
-    [["!backshot"],"https://gfycat.com/IndolentShortIndigowingedparrot"],
-    [["!shmoost"],"https://gfycat.com/unknownforsakenaztecant-rivalsofaether"],
-    [["!betterburn"],"```\nCommands\n1. !shine upstrong\n2. !shine upstrong gcc\n3. !pity flip\n4. !pity flip gcc\n5. !shine angles```"]
-]
-
-f_resources = [ # for fuzzy matching
-    ["!shine",2,1,2,0,2,[3,4,2]], # shine upstrong
-    ["!pity",2,"flip",2,[3,4,2]], # pity flip
-]
-matches = [  # order longest to shortest
-    ["strong","smash"],
-    ["up","u"],
-    [" ","-",""],
-    ["gamecube","gcc","gc"],
-    ["xbone","xbox","xb"],
-]
-
-def match(msg,i=0,k=None,group=-1):
-    if i == 0:
-        for j in range(0, len(f_resources)):
-            r = f_resources[j]
-            if msg[0:len(r[i])] == r[i]:
-                return match(msg[len(r[i]):],i+1,j)
-    elif i > 0 and i < len(f_resources[k]):
-        if isinstance(f_resources[k][i],int):
-            for variant in matches[f_resources[k][i]]:
-                if msg[0:len(variant)] == variant:
-                    return match(msg[len(variant):],i+1,k,f_resources[k][i])
-        elif isinstance(f_resources[k][i],list):
-            for variants in f_resources[k][i]:
-                for variant in matches[variants]:
-                    if msg[0:len(variant)] == variant:
-                        return match(msg[len(variant):],i+1,k,variants)
-        elif isinstance(f_resources[k][i],str):
-            if f_resources[k][i]==msg[0:len(f_resources[k][i])]:
-                return match(msg[len(f_resources[k][i]):],i+1,k)
-    if len(msg) == 0:
-        return k, group
-    return -1
+SteamAppNewsUrl = "http://api.steampowered.com/ISteamNews/GetNewsForApp/v0002/?appid=383980&count=0&format=json?key="+os.getenv("STEAM_API_KEY")
+@client.command(name="online")
+async def online(ctx):
+    req = requests.get(url=SteamAppNewsUrl)
+    data = req.json()
+    if data.get("appnews"):
+        if data["appnews"].get("count"):
+            await ctx.send("There are **"+str(data["appnews"]["count"])+"** people playing Rivals of Aether right now.")
 
 @client.event
-async def on_message(message):
-
-    if (message.author==client.user or message.author.bot):
-        return
-
-    for r in resources:
-        if message.content.lower() in r[0]:
-            await message.channel.send(r[1])
-            return
-
-    idx, group = match(message.content.lower())
-    if idx > -1:
-        if idx == 0:
-            if group == 2 or group == 4:
-                await message.channel.send(resources[0][1])
-            if group == 3:
-                await message.channel.send(resources[1][1])
-        elif idx == 1:
-            if group == 2 or group == 4:
-                await message.channel.send(resources[2][1])
-            if group == 3:
-                await message.channel.send(resources[3][1])
-        return
+async def on_command_error(ctx, error):
+    pass
 
 @client.event
 async def on_ready():
-    print("betterburn online, v1.05")
-    client.add_cog(presence.cog(client))    
+    print("betterburn online, v1.07")
+    client.add_cog(presence.cog(client))
+    client.add_cog(fuzzy.cog(client))
 
 
 client.run(__TOKEN)
