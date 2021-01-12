@@ -7,7 +7,6 @@ client = commands.Bot(command_prefix="!")
 
 __TOKEN = os.getenv("DISCORD_TOKEN")
 __SERVERS_DRAG_PERM = os.getenv("SERVERS_DRAG_PERM")
-__STEAM_API_KEY = os.getenv("STEAM_API_KEY")
 
 @client.command()
 @commands.has_role("Members")
@@ -26,7 +25,7 @@ async def drag(ctx, *args):
         else:
             await ctx.send("<@"+str(ctx.message.author.id)+"> must join a voice channel.")
 
-SteamAppNewsUrl = "http://api.steampowered.com/ISteamNews/GetNewsForApp/v0002/?appid=383980&count=0&format=json?key="+__STEAM_API_KEY
+SteamAppNewsUrl = "https://api.steampowered.com/ISteamUserStats/GetNumberOfCurrentPlayers/v1/?appid=383980"
 @client.command(name="online")
 async def online(ctx):
     req = requests.get(url=SteamAppNewsUrl)
