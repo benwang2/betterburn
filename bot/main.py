@@ -6,11 +6,13 @@ from cogs import presence, fuzzy
 client = commands.Bot(command_prefix="!")
 
 __TOKEN = os.getenv("DISCORD_TOKEN")
+__SERVERS_DRAG_PERM = os.getenv("SERVERS_DRAG_PERM")
+__STEAM_API_KEY = os.getenv("STEAM_API_KEY")
 
 @client.command()
 @commands.has_role("Members")
 async def drag(ctx, *args):
-    if (str(ctx.guild.id) in os.getenv("SERVERS_DRAG_PERM")): # Custom Drag command
+    if (str(ctx.guild.id) in __SERVERS_DRAG_PERM): # Custom Drag command
         if (ctx.author.voice and ctx.author.voice.channel):
             for moveme in ctx.message.mentions:
                 if not moveme: continue
@@ -21,10 +23,10 @@ async def drag(ctx, *args):
                         await ctx.message.add_reaction("✅")
                     else:
                         await ctx.send("<@"+str(moveme.id)+"> must join a voice channel.")
-            else:
-                await ctx.send("<@"+str(ctx.message.author.id)+"> must join a voice channel.")
+        else:
+            await ctx.send("<@"+str(ctx.message.author.id)+"> must join a voice channel.")
 
-SteamAppNewsUrl = "http://api.steampowered.com/ISteamNews/GetNewsForApp/v0002/?appid=383980&count=0&format=json?key="+os.getenv("STEAM_API_KEY")
+SteamAppNewsUrl = "http://api.steampowered.com/ISteamNews/GetNewsForApp/v0002/?appid=383980&count=0&format=json?key="+__STEAM_API_KEY
 @client.command(name="online")
 async def online(ctx):
     req = requests.get(url=SteamAppNewsUrl)
