@@ -30,9 +30,9 @@ SteamAppNewsUrl = "https://api.steampowered.com/ISteamUserStats/GetNumberOfCurre
 async def online(ctx):
     req = requests.get(url=SteamAppNewsUrl)
     data = req.json()
-    if data.get("appnews"):
-        if data["appnews"].get("count"):
-            await ctx.send("There are **"+str(data["appnews"]["count"])+"** people playing Rivals of Aether right now.")
+    if data.get("response"):
+        if data["response"].get("player_count"):
+            await ctx.send("There are **"+str(data["response"]["player_count"])+"** people playing Rivals of Aether right now.")
 
 @client.event
 async def on_command_error(ctx, error):
