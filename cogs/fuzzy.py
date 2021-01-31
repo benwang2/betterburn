@@ -38,7 +38,7 @@ resources = [
     [["!thejarek"],"https://gfycat.com/uniformornerychrysomelid"]
 ]
 
-f_resources = [ # for fuzzy matching
+f_resources = [ # for custom matching method
     ["!shine",2,1,2,0,2,[3,4,2]], # shine upstrong
     ["!pity",2,"flip",2,[3,4,2]], # pity flip
 ]
