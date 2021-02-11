@@ -1,9 +1,9 @@
 import os, time, random, requests
 import discord, asyncio
 from discord.ext import commands
-from cogs import presence, fuzzy
+from cogs import presence, fuzzy, leaderboard
 
-client = commands.Bot(command_prefix="!")
+client = commands.Bot(command_prefix="!",help_command=None)
 
 __TOKEN = os.getenv("DISCORD_TOKEN")
 __SERVERS_DRAG_PERM = os.getenv("SERVERS_DRAG_PERM")
@@ -40,9 +40,10 @@ async def on_command_error(ctx, error):
 
 @client.event
 async def on_ready():
-    print("betterburn online, v1.07")
+    print("betterburn online, v2.00")
     client.add_cog(presence.cog(client))
     client.add_cog(fuzzy.cog(client))
+    client.add_cog(leaderboard.cog(client))
 
 
 client.run(__TOKEN)

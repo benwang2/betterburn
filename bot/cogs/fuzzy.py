@@ -1,44 +1,29 @@
 import discord
 from discord.ext import commands
 
-su_ex = """```
-Explanation: Shine can be jumpcancelled. During the startup of your jump, you can input an
-upsmash, which cancels your jump. So if you have momentum out of the shine, you can carry
-that into your upsmash.
+su_ex = ["""```Shine can be jumpcancelled. During the startup of your jump, you can input an upsmash, which cancels your jump. So if you have momentum out of the shine, you can carry that into your upsmash.```""",
+"""```1. Neutral Special\n2. Jump\n3. Upsmash```"""]
 
-Inputs:
-1. Neutral Special
-2. Jump
-3. Upsmash
-``` 
-"""
-
-pf_ex = """```
-Explanation: Down Special can be cancelled with an airdodge. During the startup of Down B,
-you can input an airdodge, which cancels the dive with a flip. If you flip towards the stage,
-do a quarter circle back, you will flip towards the stage and then when you land, you'll roll
-back off the platform quickly.
-
-Inputs:
-1. Down Special
-2. Air Dodge
-3. Quarter Circle Back
-```"""
+pf_ex = ["""```Down Special can be cancelled with an airdodge. During the startup of Down B, you can input an airdodge, which cancels the dive with a flip. If you flip towards the stage, do a quarter circle back, you will flip towards the stage and then when you land, you'll roll back off the platform quickly.```""",
+"""```1. Down Special\n2. Air Dodge\n3. Quarter Circle Back```"""]
 
 resources = [
-    [["!shine upstrong", "!shine ustrong", "!shine upsmash", "!shine usmash"],"https://gfycat.com/kaleidoscopicbeneficialflicker  *(right trigger bound to strong)*\n"+su_ex],
-    [["!shine upstrong gc","!shine ustrong gc","!shine upstrong gcc","!shine ustrong gcc"],"https://gfycat.com/meatydimpledamericancicada  *(z bound to strong)*\n"+su_ex],
-    [["!pityflip","!pity flip"],"https://gfycat.com/whisperedeagerbuck\n"+pf_ex],
-    [["!pityflip gcc","!pity flip gcc"],"https://gfycat.com/grayhighlevelarrowworm\n"+pf_ex],
+    [[],"https://gfycat.com/kaleidoscopicbeneficialflicker  *(right trigger bound to strong)*",su_ex],
+    [[],"https://gfycat.com/meatydimpledamericancicada  *(z bound to strong)*",su_ex],
+    [[],"https://gfycat.com/whisperedeagerbuck\n", pf_ex],
+    [[],"https://gfycat.com/grayhighlevelarrowworm\n", pf_ex],
     [["!shine","!shine angles"],"https://i.imgur.com/Zf6Ywes.png"],
     [["!backshot"],"https://gfycat.com/IndolentShortIndigowingedparrot"],
     [["!shmoost"],"https://gfycat.com/unknownforsakenaztecant-rivalsofaether"],
-    [["!betterburn"],"```\nCommands\n1. !shine upstrong\n2. !shine upstrong gcc\n3. !pity flip\n4. !pity flip gcc\n5. !shine angles```"],
+    [["!betterburn"],"```\nCommands\n1. !shine upstrong\n2. !shine upstrong gcc\n3. !pity flip\n4. !pity flip gcc\n5. !shine angles\n6. !ranked [character]```"],
     [["!thegizmo"],"https://gfycat.com/hardfrightenedaustralianfurseal"],
-    [["!thejarek"],"https://gfycat.com/uniformornerychrysomelid"]
+    [["!thejarek"],"https://gfycat.com/uniformornerychrysomelid"],
+    [["!sdi"],"https://gfycat.com/insecurepolishedarmyant"]
 ]
 
-f_resources = [ # for custom matching method
+my_icon = "https://cdn.discordapp.com/app-icons/704757052991602688/4950ad6ade639ed08a8c4b56ca5a6134.png"
+
+f_resources = [ # for fuzzy matching
     ["!shine",2,1,2,0,2,[3,4,2]], # shine upstrong
     ["!pity",2,"flip",2,[3,4,2]], # pity flip
 ]
@@ -96,9 +81,19 @@ class cog(commands.Cog):
                     await message.channel.send(resources[0][1])
                 if group == 3:
                     await message.channel.send(resources[1][1])
+                embed = discord.Embed(color=discord.Color.from_rgb(255,125,0))
+                embed.add_field(name="Explanation",value=su_ex[0], inline=False)
+                embed.add_field(name="Inputs",value=su_ex[1], inline=False)
+                embed.set_footer(text="Betterburn",icon_url=my_icon)
+                await message.channel.send(embed=embed)
             elif idx == 1:
                 if group == 2 or group == 4:
                     await message.channel.send(resources[2][1])
                 if group == 3:
                     await message.channel.send(resources[3][1])
+                embed = discord.Embed(color=discord.Color.from_rgb(255,125,0))
+                embed.add_field(name="Explanation",value=pf_ex[0], inline=False)
+                embed.add_field(name="Inputs",value=pf_ex[1], inline=False)
+                embed.set_footer(text="Betterburn",icon_url=my_icon)
+                await message.channel.send(embed=embed)
             return
