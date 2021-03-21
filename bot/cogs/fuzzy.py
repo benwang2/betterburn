@@ -15,7 +15,7 @@ resources = [
     [["!shine","!shine angles"],"https://i.imgur.com/Zf6Ywes.png"],
     [["!backshot"],"https://gfycat.com/IndolentShortIndigowingedparrot"],
     [["!shmoost"],"https://gfycat.com/unknownforsakenaztecant-rivalsofaether"],
-    [["!betterburn"],"```\nCommands\n1. !shine upstrong\n2. !shine upstrong gcc\n3. !pity flip\n4. !pity flip gcc\n5. !shine angles\n6. !ranked [character]```"],
+    [["!betterburn"],"```\nCommands\n1. !shine upstrong\n2. !shine upstrong gcc\n3. !pity flip\n4. !pity flip gcc\n5. !shine angles\n6. !ranked [character]\n7. !text [content]```"],
     [["!thegizmo"],"https://gfycat.com/hardfrightenedaustralianfurseal"],
     [["!thejarek"],"https://gfycat.com/uniformornerychrysomelid"],
     [["!sdi"],"https://gfycat.com/insecurepolishedarmyant"]
