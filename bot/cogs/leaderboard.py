@@ -3,6 +3,8 @@ from bs4 import BeautifulSoup
 from PIL import Image
 from io import BytesIO
 from discord.ext import commands
+from modules.steamboards import SteamLeaderboard
+import config
 
 baseUrl = "https://steamcommunity.com/stats/383980/leaderboards/"
 leaderboards = {
@@ -24,15 +26,22 @@ leaderboards = {
     "etalus":"3277596"
 }
 
-font_colors = {
-    "default":[(0, 0, 0, 0),(0,0,0),(255,255,255)],
-    "bronze":[(0, 0, 0, 0),(0,0,0),(255,153,102)],
-    "silver":[(0, 0, 0, 0),(0,0,0),(200,200,200)],
-    "gold":[(0, 0, 0, 0),(0,0,0),(255,204,0)]
+font_colors = { # transparent,  outline,    fill color
+    "default":  [(0, 0, 0, 0),  (0, 0, 0),  (255, 255, 255)],
+    "bronze":   [(0, 0, 0, 0),  (0, 0, 0),  (255, 153, 102)],
+    "silver":   [(0, 0, 0, 0),  (0, 0, 0),  (200, 200, 200)],
+    "gold":     [(0, 0, 0, 0),  (0, 0, 0),  (255, 204, 0  )]
 }
 
 characters = ["zetterburn","orcane","forsburn","etalus","ori","clairen","elliana","wrastor","kragg","maypul","absa","ranno","sylvanos","shovel knight"]
-aliases = [["zetterburn","zetter","zet"],["forsburn","fors"],["etalus","eta"],["elliana","elli"],["sylvanos","sylv"],["shovel knight","sk"]]
+aliases = [
+    ["zetterburn","zetter","zet"],
+    ["forsburn","fors"],
+    ["etalus","eta"],
+    ["elliana","elli"],
+    ["sylvanos","sylv"],
+    ["shovel knight","sk"]
+]
 
 cmatrix = {}
 with open("bot/assets/leaderboard/cmatrix.csv","r",encoding="utf8") as f:
@@ -64,12 +73,12 @@ def getTextWidth(text, scale = 4):
         width += len(cmatrix[char])*scale + (scale if char==" " else -scale)
     return width
 
-def generateCharacter(img, pos, char, scale=4, colors=font_colors["default"]):
+def generateCharacter(img, pos, char, scale = 4, colors = font_colors["default"]):
     for x in range(0, len(cmatrix[char])):
         for y in range(0, len(cmatrix[char][0])):
             for dx in range(0, scale):
                 for dy in range(0, scale):
-                    if (cmatrix[char][x][y] == 0 and not img.getpixel(pos) != colors[0]) or cmatrix[char][x][y] > 0:
+                    if (cmatrix[char][x][y] == 0 and not img.getpixel(pos) == colors[0]) or cmatrix[char][x][y] > 0:
                         img.putpixel((pos[0]+x*scale+dx,pos[1]+y*scale+dy),colors[cmatrix[char][x][y]])
     return getTextWidth(char)
 
@@ -95,6 +104,12 @@ def setPlayerScore(img, cell, points):
     for char in "🏆 "+str(points):
         offset += generateCharacter(img, (806+offset, 56+48*cell), char , colors=colors)
 
+def setPlayerRank(img, cell, rank):
+    width = getTextWidth(rank)
+    offset = 0
+    for char in rank:
+        offset += generateCharacter(img, (66-int(width/2)+4+offset, 56+48*cell), char)
+
 class cog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -104,34 +119,68 @@ class cog(commands.Cog):
             if character in group:
                 return group[0]
         return False
+
+    async def generateLeaderboard(self, character, page=1):
+        steamboard = SteamLeaderboard(
+            app_id = config.STEAM_APP_ID,
+            leaderboard_id = leaderboards[character],
+            api_key = config.STEAM_API_KEY,
+            mute=True
+        )
+
+        page_start = 1+((page-1)*15)
+
+        data = steamboard.update(start=page_start, limit=16)
+        users = data.values()
+
+        cell = 0
+        leaderboard = createLeaderboard()
+        
+        for i in range(0, 15):
+            name = cleanText(users[i]["persona"])
+            score = eval(users[i]["score"])
+            if character in characters:
+                setPlayerMain(leaderboard, cell, character)
+            setPlayerName(leaderboard, cell, name)
+            setPlayerScore(leaderboard, cell, score)
+            setPlayerRank(leaderboard, cell, str(page_start+i))
+            cell += 1
+            
+        with BytesIO() as binary:
+            leaderboard.save(binary, 'PNG')
+            binary.seek(0)
+            return discord.File(fp=binary, filename="leaderboard.png")
     
     @commands.command()
-    async def ranked(self, ctx, character):
+    async def ranked(self, ctx, character, page=1):
+        character = character.lower()
         if self.matchCharacter(character) or (character in characters) or (character in leaderboards):
             character = character if (character in characters) or (character in leaderboards) else self.matchCharacter(character)
             await ctx.message.add_reaction("✅")
             try:
-                with requests.get(baseUrl+leaderboards[character]) as response:
-                    soup = BeautifulSoup(response.text, 'html.parser')
-                    entries = soup.findAll("div", {"class": "lbentry"})
-                    names = soup.findAll("a", {"class":"playerName"})
-                    scores = soup.findAll("div",{"class":"score"})
-                    cell = 0
-                    leaderboard = createLeaderboard()
-                    for cell in range(0, len(entries)):
-                        name = cleanText(names[cell].text)
-                        score = eval(scores[cell].text.strip().replace(",",""))
-                        if character in characters:
-                            setPlayerMain(leaderboard, cell, character)
-                        setPlayerName(leaderboard, cell, name)
-                        setPlayerScore(leaderboard, cell, score)
-                    with BytesIO() as binary:
-                        leaderboard.save(binary, 'PNG')
-                        binary.seek(0)
-                        await ctx.send(file=discord.File(fp=binary, filename="leaderboard.png"))
+                leaderboard = await self.generateLeaderboard(character,page)
+                await ctx.send(file=leaderboard)
             except Exception as e:
-                print("Exception occured in !ranked command:",e)
+                print("Exception occured in !ranked command:",repr(e))
                 await ctx.message.clear_reactions()
                 await ctx.message.add_reaction("💢")
         else:
             await ctx.message.add_reaction("😕")
+
+    @commands.command()
+    async def text(self, ctx, *text):
+        await ctx.message.add_reaction("✅")
+        try:
+            text = " ".join(text)
+            text = cleanText(text.lower())
+            img = Image.new("RGBA",(getTextWidth(text)+4,40))
+            offset = 0
+            for char in text:
+                offset += generateCharacter(img, (offset, -4), char)
+            with BytesIO() as binary:
+                img.save(binary, "PNG")
+                binary.seek(0)
+                await ctx.send(file=discord.File(fp=binary, filename=text+".png"))
+        except Exception as e:
+            await ctx.message.clear_reactions()
+            await ctx.message.add_reaction("💢")

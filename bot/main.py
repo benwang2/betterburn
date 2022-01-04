@@ -1,17 +1,15 @@
-import os, time, random, requests
+import os, time, random, requests, config
 import discord, asyncio
 from discord.ext import commands
 from cogs import presence, fuzzy, leaderboard
 
 client = commands.Bot(command_prefix="!",help_command=None)
 
-__TOKEN = os.getenv("DISCORD_TOKEN")
-__SERVERS_DRAG_PERM = os.getenv("SERVERS_DRAG_PERM")
-
+# rewrite to Lotus
 @client.command()
 @commands.has_role("Members")
 async def drag(ctx, *args):
-    if (str(ctx.guild.id) in __SERVERS_DRAG_PERM): # Custom Drag command
+    if (str(ctx.guild.id) in config.SERVERS_DRAG_PERM): # Custom Drag command
         if (ctx.author.voice and ctx.author.voice.channel):
             for moveme in ctx.message.mentions:
                 if not moveme: continue
@@ -46,4 +44,4 @@ async def on_ready():
     client.add_cog(leaderboard.cog(client))
 
 
-client.run(__TOKEN)
+client.run(config.DISCORD_TOKEN)

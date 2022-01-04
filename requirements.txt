@@ -1,4 +1,9 @@
-discord.py
+discord.py  
 flask
 PyNaCl
 dnspython
+requests
+bs4
+Pillow
+indexed
+lxml
