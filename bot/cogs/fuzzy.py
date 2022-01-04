@@ -24,8 +24,8 @@ resources = [
 my_icon = "https://cdn.discordapp.com/app-icons/704757052991602688/4950ad6ade639ed08a8c4b56ca5a6134.png"
 
 f_resources = [ # for fuzzy matching
-    ["!shine",2,1,2,0,2,[3,4,2]], # shine upstrong
-    ["!pity",2,"flip",2,[3,4,2]], # pity flip
+    ["!shine",2,1,2,0,2,[2,3,4]], # shine upstrong
+    ["!pity",2,"flip",2,[2,3,4]], # pity flip
 ]
 matches = [  # order longest to shortest
     ["strong","smash"],
