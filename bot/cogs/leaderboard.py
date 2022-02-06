@@ -23,7 +23,11 @@ leaderboards = {
     "forsburn":"3277592",
     "maypul":"3277593",
     "absa":"3277595",
-    "etalus":"3277596"
+    "etalus":"3277596",
+    "olympia":"6690115",
+    "mollo":"6690110",
+    "hodan":"6690112",
+    "pomme":"6690113"
 }
 
 font_colors = { # transparent,  outline,    fill color
@@ -33,14 +37,21 @@ font_colors = { # transparent,  outline,    fill color
     "gold":     [(0, 0, 0, 0),  (0, 0, 0),  (255, 204, 0  )]
 }
 
-characters = ["zetterburn","orcane","forsburn","etalus","ori","clairen","elliana","wrastor","kragg","maypul","absa","ranno","sylvanos","shovel knight"]
+characters = [
+    "zetterburn","orcane","forsburn","etalus",
+    "ori","clairen","elliana","wrastor",
+    "kragg","maypul","absa","ranno",
+    "sylvanos","shovel knight",
+    "olympia","mollo","hodan","pomme"
+]
 aliases = [
     ["zetterburn","zetter","zet"],
     ["forsburn","fors"],
     ["etalus","eta"],
     ["elliana","elli"],
     ["sylvanos","sylv"],
-    ["shovel knight","sk"]
+    ["shovel knight","sk"],
+    ["olympia","oly"]
 ]
 
 cmatrix = {}
