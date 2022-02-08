@@ -5,24 +5,6 @@ from cogs import presence, fuzzy, leaderboard
 
 client = commands.Bot(command_prefix="!",help_command=None)
 
-# rewrite to Lotus
-@client.command()
-@commands.has_role("Members")
-async def drag(ctx, *args):
-    if (str(ctx.guild.id) in config.SERVERS_DRAG_PERM): # Custom Drag command
-        if (ctx.author.voice and ctx.author.voice.channel):
-            for moveme in ctx.message.mentions:
-                if not moveme: continue
-                role = discord.utils.get(ctx.channel.guild.roles, name='Members')
-                if not role in moveme.roles or ctx.message.author.server_permissions.administrator:
-                    if moveme.voice and moveme.voice.channel:
-                        await moveme.move_to(ctx.author.voice.channel,reason="<@"+str(ctx.author.display_name)+"> used drag command.")
-                        await ctx.message.add_reaction("✅")
-                    else:
-                        await ctx.send("<@"+str(moveme.id)+"> must join a voice channel.")
-        else:
-            await ctx.send("<@"+str(ctx.message.author.id)+"> must join a voice channel.")
-
 SteamAppNewsUrl = "https://api.steampowered.com/ISteamUserStats/GetNumberOfCurrentPlayers/v1/?appid=383980"
 @client.command(name="online")
 async def online(ctx):
@@ -42,6 +24,5 @@ async def on_ready():
     client.add_cog(presence.cog(client))
     client.add_cog(fuzzy.cog(client))
     client.add_cog(leaderboard.cog(client))
-
 
 client.run(config.DISCORD_TOKEN)
