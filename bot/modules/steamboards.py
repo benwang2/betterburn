@@ -1,5 +1,4 @@
 import collections.abc
-import config
 from indexed import IndexedOrderedDict as odict
 import requests, time
 from lxml import etree

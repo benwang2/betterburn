@@ -1,4 +1,4 @@
-import os, time, random, requests, config
+import os, time, random, requests
 import discord, asyncio
 from discord.ext import commands
 from cogs import presence, fuzzy, leaderboard
@@ -25,4 +25,4 @@ async def on_ready():
     client.add_cog(fuzzy.cog(client))
     client.add_cog(leaderboard.cog(client))
 
-client.run(config.DISCORD_TOKEN)
+client.run(os.getenv("DISCORD_TOKEN"))

@@ -1,5 +1,3 @@
-config.py
-
 # Mac OS files
 .DS_Store
 
@@ -107,5 +105,4 @@ venv.bak/
 
 # mypy
 .mypy_cache/
-bot/config.py
 bot/main.py

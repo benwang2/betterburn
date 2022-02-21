@@ -1,10 +1,9 @@
-import discord, requests
+import discord, requests, os
 from bs4 import BeautifulSoup
 from PIL import Image
 from io import BytesIO
 from discord.ext import commands
 from modules.steamboards import SteamLeaderboard
-import config
 
 baseUrl = "https://steamcommunity.com/stats/383980/leaderboards/"
 leaderboards = {
@@ -133,9 +132,9 @@ class cog(commands.Cog):
 
     async def generateLeaderboard(self, character, page=1):
         steamboard = SteamLeaderboard(
-            app_id = config.STEAM_APP_ID,
+            app_id = os.getenv("STEAM_APP_ID,
             leaderboard_id = leaderboards[character],
-            api_key = config.STEAM_API_KEY,
+            api_key = os.getenv("STEAM_API_KEY"),
             mute=True
         )
 
