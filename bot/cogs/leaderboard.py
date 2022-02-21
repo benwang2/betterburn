@@ -132,7 +132,7 @@ class cog(commands.Cog):
 
     async def generateLeaderboard(self, character, page=1):
         steamboard = SteamLeaderboard(
-            app_id = os.getenv("STEAM_APP_ID,
+            app_id = os.getenv("STEAM_APP_ID"),
             leaderboard_id = leaderboards[character],
             api_key = os.getenv("STEAM_API_KEY"),
             mute=True
