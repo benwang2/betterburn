@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 
-su_ex = ["""```Shine can be jumpcancelled. During the startup of your jump, you can input an upsmash, which cancels your jump. So if you have momentum out of the shine, you can carry that into your upsmash.```""",
+su_ex = ["""```Shine can be jumpcancelled. During the startup of your jump, you can input an upsmash, which cancels your jump. Shine upstrong is most commonly used as a parry punish, in which case you would shine upstrong out of initial dash.```""",
 """```1. Neutral Special\n2. Jump\n3. Upsmash```"""]
 
 pf_ex = ["""```Down Special can be cancelled with an airdodge. During the startup of Down B, you can input an airdodge, which cancels the dive with a flip. If you flip towards the stage, do a quarter circle back, you will flip towards the stage and then when you land, you'll roll back off the platform quickly.```""",
@@ -11,8 +11,8 @@ ld_ex = ["""```Air dodge can be used immediately after a wall tech. Aim your rec
 """```1. Wall tech\n2. Air Dodge Left/Right```"""]
 
 resources = [
-    [[ ["!shine", 2, 1, 2, 0, 2, [2,4]] ],"https://gfycat.com/kaleidoscopicbeneficialflicker  *(right trigger bound to strong)*", su_ex],
-    [[ ["!shine", 2, 1, 2, 0, 2, 3] ],"https://gfycat.com/meatydimpledamericancicada  *(z bound to strong)*", su_ex],
+    [[ ["!shine", 2, 1, 2, 0, 2, [2,4]] ],"https://gfycat.com/higharidhammerheadshark  *(right trigger bound to strong)*", su_ex],
+    [[ ["!shine", 2, 1, 2, 0, 2, 3] ],"https://gfycat.com/severalheartfelthairstreak  *(z bound to strong)*", su_ex],
     [[ ["!pity", 2, "flip", 2, [2,4]]],"https://gfycat.com/whisperedeagerbuck\n", pf_ex],
     [[ ["!pity", 2, "flip", 2, 3]],"https://gfycat.com/grayhighlevelarrowworm\n", pf_ex],
     [["!ledgedash"],"https://gfycat.com/officialfalsecrocodileskink\n", ld_ex],
