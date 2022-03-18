@@ -74,6 +74,7 @@ class cog(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, message):
         if (message.author.bot): return
+        if (not message.content): return
         if (message.content[0] != "!"): return
 
         item = match(message.content.lower())
