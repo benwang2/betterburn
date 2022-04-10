@@ -164,18 +164,18 @@ class cog(commands.Cog):
     @commands.command()
     async def ranked(self, ctx, character, page=1):
         character = character.lower()
-        # if self.matchCharacter(character) or (character in characters) or (character in leaderboards):
-        #     character = character if (character in characters) or (character in leaderboards) else self.matchCharacter(character)
-        #     await ctx.message.add_reaction("✅")
-        #     try:
-        #         leaderboard = await self.generateLeaderboard(character,page)
-        #         await ctx.send(file=leaderboard)
-        #     except Exception as e:
-        #         print("Exception occured in !ranked command:",repr(e))
-        #         await ctx.message.clear_reactions()
-        #         await ctx.message.add_reaction("💢")
-        # else:
-        await ctx.message.add_reaction("😕")
+        if self.matchCharacter(character) or (character in characters) or (character in leaderboards):
+            character = character if (character in characters) or (character in leaderboards) else self.matchCharacter(character)
+            await ctx.message.add_reaction("✅")
+            try:
+                leaderboard = await self.generateLeaderboard(character,page)
+                await ctx.send(file=leaderboard)
+            except Exception as e:
+                print("Exception occured in !ranked command:",repr(e))
+                await ctx.message.clear_reactions()
+                await ctx.message.add_reaction("💢")
+        else:
+            await ctx.message.add_reaction("😕")
 
     @commands.command()
     async def text(self, ctx, *text):
