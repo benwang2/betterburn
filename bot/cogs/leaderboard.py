@@ -84,13 +84,16 @@ def getTextWidth(text, scale = 4):
     return width
 
 def generateCharacter(img, pos, char, scale = 4, colors = font_colors["default"]):
-    for x in range(0, len(cmatrix[char])):
-        for y in range(0, len(cmatrix[char][0])):
-            for dx in range(0, scale):
-                for dy in range(0, scale):
-                    if (cmatrix[char][x][y] == 0 and not img.getpixel(pos) == colors[0]) or cmatrix[char][x][y] > 0:
-                        img.putpixel((pos[0]+x*scale+dx,pos[1]+y*scale+dy),colors[cmatrix[char][x][y]])
-    return getTextWidth(char)
+    try:
+        for x in range(0, len(cmatrix[char])):
+            for y in range(0, len(cmatrix[char][0])):
+                for dx in range(0, scale):
+                    for dy in range(0, scale):
+                        if (cmatrix[char][x][y] == 0 and not img.getpixel(pos) == colors[0]) or cmatrix[char][x][y] > 0:
+                            img.putpixel((pos[0]+x*scale+dx,pos[1]+y*scale+dy-scale),colors[cmatrix[char][x][y]])
+    except Exception as e:
+        raise e
+    return getTextWidth(char, scale)
 
 def setPlayerName(img, cell, name):
     name = cleanText(name)
@@ -182,15 +185,62 @@ class cog(commands.Cog):
         await ctx.message.add_reaction("✅")
         try:
             text = " ".join(text)
+
+            tooLong = len(text) > 1038
+            if tooLong: text = text[:1034]+"..."
+
             text = cleanText(text.lower())
-            img = Image.new("RGBA",(getTextWidth(text)+4,40))
-            offset = 0
-            for char in text:
-                offset += generateCharacter(img, (offset, -4), char)
+
+            offset = [0,0]
+            textSize = 4
+            maxRowWidth = 250*textSize
+            rowHeight = textSize*10
+            rows, rowWidth = [[]], 0
+            
+            for word in text.split(" "):
+                if getTextWidth(word, scale=textSize) > maxRowWidth: # break word into two rows
+                    segEnd = 0
+                    while segEnd != len(word):
+                        segEnd += 1
+                        if getTextWidth(word[:segEnd],scale=textSize) > maxRowWidth:
+                            rows[-1].append(word[:segEnd-1])
+                            word = word[segEnd-1:]
+                            segEnd = 0
+                            rows.append([])
+                            rowWidth = 0
+                        elif segEnd == len(word):
+                            rows[-1].append(word)
+                            rowWidth = getTextWidth(word+" ",scale=textSize)
+                else:
+                    if (rowWidth + getTextWidth(word,scale=textSize) >= maxRowWidth):
+                        rows.append([])
+                        rowWidth = 0
+                    rows[-1].append(word)
+                    rowWidth += getTextWidth(word+" ",scale=textSize)
+    
+
+            imageBounds = (min(getTextWidth(text,scale=textSize)+4,maxRowWidth)+12*textSize,len(rows)*rowHeight)
+            img = Image.new("RGBA",imageBounds)
+            print("IMAGE_BOUNDS:",imageBounds)
+            print(f"TEXT_WIDTH:{getTextWidth(text,scale=textSize)+4}, MAX_ROW_WIDTH:{maxRowWidth+32}")
+            offset = [0, 0]
+            for rowNum in range(len(rows)):
+                for word in rows[rowNum]:
+                    for char in word:
+                        # print(offset[0] + getTextWidth(char),sep=",")
+                        offset[0] += generateCharacter(img, (offset[0], (rowHeight*rowNum)), char, scale=textSize)
+                    offset[0] += generateCharacter(img, (offset[0], (rowHeight*rowNum)), " ", scale=textSize)
+                offset[0] = 0
+                        
             with BytesIO() as binary:
                 img.save(binary, "PNG")
                 binary.seek(0)
-                await ctx.send(file=discord.File(fp=binary, filename=text+".png"))
+                await ctx.reply(
+                    file=discord.File(fp=binary, filename=text+".png"),
+                    mention_author = False,
+                    content="Your message was too long to generate completely. (limit 1024 characters)" if tooLong else ""
+                )
         except Exception as e:
+            print("Exception occured in !text command:",repr(e))
             await ctx.message.clear_reactions()
             await ctx.message.add_reaction("💢")
