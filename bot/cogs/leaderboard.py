@@ -221,8 +221,8 @@ class cog(commands.Cog):
 
             imageBounds = (min(getTextWidth(text,scale=textSize)+4,maxRowWidth)+12*textSize,len(rows)*rowHeight)
             img = Image.new("RGBA",imageBounds)
-            print("IMAGE_BOUNDS:",imageBounds)
-            print(f"TEXT_WIDTH:{getTextWidth(text,scale=textSize)+4}, MAX_ROW_WIDTH:{maxRowWidth+32}")
+            # print("IMAGE_BOUNDS:",imageBounds)
+            # print(f"TEXT_WIDTH:{getTextWidth(text,scale=textSize)+4}, MAX_ROW_WIDTH:{maxRowWidth+32}")
             offset = [0, 0]
             for rowNum in range(len(rows)):
                 for word in rows[rowNum]:
