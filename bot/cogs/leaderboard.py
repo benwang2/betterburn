@@ -90,7 +90,7 @@ def generateCharacter(img, pos, char, scale = 4, colors = font_colors["default"]
                 for dx in range(0, scale):
                     for dy in range(0, scale):
                         if (cmatrix[char][x][y] == 0 and not img.getpixel(pos) == colors[0]) or cmatrix[char][x][y] > 0:
-                            img.putpixel((pos[0]+x*scale+dx,pos[1]+y*scale+dy-scale),colors[cmatrix[char][x][y]])
+                            img.putpixel((pos[0]+x*scale+dx,pos[1]+y*scale+dy),colors[cmatrix[char][x][y]])
     except Exception as e:
         raise e
     return getTextWidth(char, scale)
@@ -186,8 +186,8 @@ class cog(commands.Cog):
         try:
             text = " ".join(text)
 
-            tooLong = len(text) > 1038
-            if tooLong: text = text[:1034]+"..."
+            tooLong = len(text) > 1024
+            if tooLong: text = text[:1024]+"..."
 
             text = cleanText(text.lower())
 
@@ -221,15 +221,12 @@ class cog(commands.Cog):
 
             imageBounds = (min(getTextWidth(text,scale=textSize)+4,maxRowWidth)+12*textSize,len(rows)*rowHeight)
             img = Image.new("RGBA",imageBounds)
-            # print("IMAGE_BOUNDS:",imageBounds)
-            # print(f"TEXT_WIDTH:{getTextWidth(text,scale=textSize)+4}, MAX_ROW_WIDTH:{maxRowWidth+32}")
             offset = [0, 0]
             for rowNum in range(len(rows)):
                 for word in rows[rowNum]:
                     for char in word:
-                        # print(offset[0] + getTextWidth(char),sep=",")
-                        offset[0] += generateCharacter(img, (offset[0], (rowHeight*rowNum)), char, scale=textSize)
-                    offset[0] += generateCharacter(img, (offset[0], (rowHeight*rowNum)), " ", scale=textSize)
+                        offset[0] += generateCharacter(img, (offset[0], -4+(rowHeight*rowNum)), char, scale=textSize)
+                    offset[0] += generateCharacter(img, (offset[0], -4+(rowHeight*rowNum)), " ", scale=textSize)
                 offset[0] = 0
                         
             with BytesIO() as binary:
