@@ -1,8 +1,10 @@
-import discord, requests, os
+from typing import List
+
+import disnake, requests, os
 from bs4 import BeautifulSoup
 from PIL import Image
 from io import BytesIO
-from discord.ext import commands
+from disnake.ext import commands
 from modules.steamboards import SteamLeaderboard
 
 baseUrl = "https://steamcommunity.com/stats/383980/leaderboards/"
@@ -123,17 +125,29 @@ def setPlayerRank(img, cell, rank):
     for char in rank:
         offset += generateCharacter(img, (66-int(width/2)+4+offset, 56+48*cell), char)
 
-class cog(commands.Cog):
-    def __init__(self, bot):
-        self.bot = bot
-
+class Leaderboard(commands.Cog):
     def matchCharacter(self, character):
         for group in aliases:
             if character in group:
                 return group[0]
         return False
 
-    async def generateLeaderboard(self, character, page=1):
+    async def autocomplete_char(inter, string: str) -> List[str]:
+        return [name for name in leaderboards.keys() if string.lower() in name.lower()]
+
+    @commands.slash_command(
+        name="ranked",
+        description="Display the leaderboard for a character category."
+    )
+    async def ranked(
+        inter: disnake.CommandInteraction,
+        character: str = commands.Param(choices=leaderboards.keys()),
+        page: int = 1
+    ):
+        if not character in leaderboards:
+            await inter.response.send_message("Invalid parameters provided.", ephemeral=True)
+            return
+
         steamboard = SteamLeaderboard(
             app_id = os.getenv("STEAM_APP_ID"),
             leaderboard_id = leaderboards[character],
@@ -159,33 +173,18 @@ class cog(commands.Cog):
             setPlayerRank(leaderboard, cell, str(page_start+i))
             cell += 1
             
+        file = None
         with BytesIO() as binary:
             leaderboard.save(binary, 'PNG')
             binary.seek(0)
-            return discord.File(fp=binary, filename="leaderboard.png")
-    
-    @commands.command()
-    async def ranked(self, ctx, character, page=1):
-        character = character.lower()
-        if self.matchCharacter(character) or (character in characters) or (character in leaderboards):
-            character = character if (character in characters) or (character in leaderboards) else self.matchCharacter(character)
-            await ctx.message.add_reaction("✅")
-            try:
-                leaderboard = await self.generateLeaderboard(character,page)
-                await ctx.send(file=leaderboard)
-            except Exception as e:
-                print("Exception occured in !ranked command:",repr(e))
-                await ctx.message.clear_reactions()
-                await ctx.message.add_reaction("💢")
-        else:
-            await ctx.message.add_reaction("😕")
+            file = disnake.File(fp=binary, filename="leaderboard.png")
+        
+        await inter.response.send_message(file=file)
 
-    @commands.command()
-    async def text(self, ctx, *text):
-        await ctx.message.add_reaction("✅")
+
+    @commands.slash_command(name="text", description="Generates text in Rivals of Aether font.")
+    async def text(inter, text: str):
         try:
-            text = " ".join(text)
-
             tooLong = len(text) > 1024
             if tooLong: text = text[:1024]+"..."
 
@@ -232,12 +231,18 @@ class cog(commands.Cog):
             with BytesIO() as binary:
                 img.save(binary, "PNG")
                 binary.seek(0)
-                await ctx.reply(
-                    file=discord.File(fp=binary, filename=text+".png"),
-                    mention_author = False,
-                    content="Your message was too long to generate completely. (limit 1024 characters)" if tooLong else ""
-                )
+                if tooLong:
+                    await inter.response.send_message(
+                        content="Your message was too long to generate completely. (limit 1024 characters)",
+                        ephemeral=True
+                    )
+                else:
+
+                    await inter.response.send_message(
+                        file=disnake.File(fp=binary, filename=text+".png")
+                    )
         except Exception as e:
-            print("Exception occured in !text command:",repr(e))
-            await ctx.message.clear_reactions()
-            await ctx.message.add_reaction("💢")
+            await inter.response.send_message(
+                content="Error occured: "+repr(e),
+            )
+            raise e

@@ -1,5 +1,5 @@
-import discord
-from discord.ext import commands
+import disnake
+from disnake.ext import commands
 
 su_ex = ["""```Shine can be jumpcancelled. During the startup of your jump, you can input an upsmash, which cancels your jump. Shine upstrong is most commonly used as a parry punish, in which case you would shine upstrong out of initial dash.```""",
 """```1. Neutral Special\n2. Jump\n3. Upsmash```"""]
@@ -67,7 +67,7 @@ def match(message):
     return None
 
 
-class cog(commands.Cog):
+class Fuzzy(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
@@ -83,7 +83,7 @@ class cog(commands.Cog):
             await message.channel.send(item[1])
 
             if len(item)==3:
-                embed = discord.Embed(color=discord.Color.from_rgb(255,125,0))
+                embed = disnake.Embed(color=disnake.Color.from_rgb(255,125,0))
                 embed.add_field(name="Explanation",value=item[2][0], inline=False)
                 embed.add_field(name="Inputs",value=item[2][1], inline=False)
                 embed.set_footer(text="Betterburn",icon_url=my_icon)

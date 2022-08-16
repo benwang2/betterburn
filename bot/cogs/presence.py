@@ -1,6 +1,6 @@
-import discord, random
-from discord import client
-from discord.ext import tasks, commands
+import disnake, random
+from disnake import client
+from disnake.ext import tasks, commands
 
 activities = [
     'Grinding pity flips',
@@ -12,7 +12,7 @@ activities = [
     'Spamming my "neutral" tool'
 ]
 
-class cog(commands.Cog):
+class Presence(commands.Cog):
     def __init__(self, bot):
         self.index = random.randrange(0, len(activities))
         self.bot = bot
@@ -26,5 +26,5 @@ class cog(commands.Cog):
         self.index += 1
         if (self.index>=len(activities)):
             self.index = 0
-        await self.bot.change_presence(activity=discord.Game(activities[self.index]+" | !betterburn"))
+        await self.bot.change_presence(activity=disnake.Game(activities[self.index]+" | !betterburn"))
 
