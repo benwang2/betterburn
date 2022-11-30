@@ -8,8 +8,8 @@ tech_list = ["shine upstrong","pityflip","ledgedash","sdi"]
 controller_list = ["xbox one","gamecube"]
 resources = {
     "shine upstrong": {
-        "xbox one": "https://gfycat.com/higharidhammerheadshark",#  *(right trigger bound to strong)*",
-        "gamecube": "https://gfycat.com/severalheartfelthairstreak",#  *(z bound to strong)",
+        "xbox one": "https://gfycat.com/higharidhammerheadshark  *(right trigger bound to strong)*",
+        "gamecube": "https://gfycat.com/severalheartfelthairstreak  *(z bound to strong)",
         "__embed__": ["""```Shine can be jumpcancelled. During the startup of your jump, you can input an upsmash, which cancels your jump. Shine upstrong is most commonly used as a parry punish, in which case you would shine upstrong out of initial dash.```""", """```1. Neutral Special\n2. Jump\n3. Upsmash```"""]
     },
     "pityflip": {
@@ -19,21 +19,21 @@ resources = {
     },
     "ledgedash": {
         "xbox one": "https://gfycat.com/officialfalsecrocodileskink",
-        "gamecube": "https://gfycat.com/officialfalsecrocodileskink",
+        "gamecube": "https://gfycat.com/carelessactualfunnelweaverspider",
         "__embed__": ["""```Air dodge can be used immediately after a wall tech. Aim your recovery for the corner of the ledge and airdodge to the right/left just after a wall tech. Timings will vary depending on distance and tighter ledgedashes will give you more i-frames.```""", """```1. Wall tech\n2. Air Dodge Left/Right```"""]
     },
     "sdi": {
-        "xbox one": "",
-        "gamecube": "",
+        "xbox one": "https://gfycat.com/unsteadyremotehummingbird",
+        "gamecube": "https://gfycat.com/caninewateryheron",
     }
 }
 
 class Guide(commands.Cog):
 
-    async def autocomplete_name(inter, string: str) -> List[str]:
+    async def autocomplete_name(inter, string: str = "") -> List[str]:
         return [name for name in tech_list if string.lower() in name.lower()]
 
-    async def autocomplete_controller(inter, string: str) -> List[str]:
+    async def autocomplete_controller(inter, string: str = "") -> List[str]:
         return [controller for controller in controller_list if string.lower() in controller.lower()]
 
     @commands.slash_command(
@@ -59,6 +59,4 @@ class Guide(commands.Cog):
                 embed.set_footer(text="Betterburn",icon_url=my_icon)
 
                 await inter.channel.send(embed=embed)
-                
-            
                 
