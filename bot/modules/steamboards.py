@@ -39,6 +39,7 @@ class SteamLeaderboard:
         numRequests = 0
         url = f"https://steamcommunity.com/stats/{self.__app_id__}/leaderboards/{self.__leaderboard_id__}?xml=1&start={start}"
         xml, data, personas = [[],[],[]], odict(), {}
+        page_num = (start // 15) + 1
         if limit != None:
             url += "&end="+str(start+(limit-1))
         try:
@@ -59,8 +60,7 @@ class SteamLeaderboard:
                     else: break
 
             if xml[2][0].text != str(start):
-                max_page = eval(xml[2][0].text) // 15 + 1
-                raise IndexError(f"Page index out of range (max page is {max_page}).")
+                page_num = eval(xml[2][0].text) // 15 + 1
 
             if (not self.__mute__): print("Took "+str(time.time()-t_start)+" seconds to get all leaderboard entries.")
             t_start = time.time()
@@ -88,10 +88,7 @@ class SteamLeaderboard:
                     
             if (not self.__mute__):  print("Took "+str(time.time()-t_start)+" seconds to combine data sets.")
             self.__data__ = data
-            return data
-        except IndexError as e:
-            print(repr(e))
-            raise e
+            return {"data":data,"page":page_num}
         except Exception as e:
             return {"exception":e}
 

@@ -8,6 +8,7 @@ from disnake.ext import commands
 from modules.steamboards import SteamLeaderboard
 
 baseUrl = f"https://steamcommunity.com/stats/{os.environ['STEAM_APP_ID']}/leaderboards/"
+my_icon = "https://cdn.discordapp.com/app-icons/704757052991602688/4950ad6ade639ed08a8c4b56ca5a6134.png"
 leaderboards = {
     "all":"3277611",
     "random":"3279662",
@@ -158,12 +159,15 @@ class Leaderboard(commands.Cog):
         page_start = 1+((page-1)*15)
 
         try:
-            data = steamboard.update(start=page_start, limit=16)
-        except IndexError as e:
-            await inter.response.send_message(e.args[0], ephemeral=True)
-            return
+            (data, real_page) = steamboard.update(start=page_start, limit=16).values()
         except Exception as e:
-            await inter.response.send_message("Failed to get leaderboard from steam.")
+            embed = disnake.Embed(
+                title="An unknown error has occurred!",
+                description="Please contact <@154046172254830592>.",
+                color=disnake.Color.from_rgb(255,125,0)
+            )
+            embed.add_field(name="Error",value=repr(e), inline=False)
+            await inter.response.send_message(embed=embed, ephemeral=True)
             return
 
         users = data.values()
@@ -187,11 +191,27 @@ class Leaderboard(commands.Cog):
             with BytesIO() as binary:
                 leaderboard.save(binary, 'PNG')
                 binary.seek(0)
-                file = disnake.File(fp=binary, filename=f"ranked_{character}_p{page}.png")
-        
-            await inter.response.send_message(file=file)
+                file = disnake.File(fp=binary, filename=f"betterburn_{character}{page}.png")
+
+            embed = disnake.Embed(
+                title=f"Ranked - {character.capitalize()}",
+                description = f"Page {real_page}",
+                color=disnake.Color.from_rgb(255,125,0)
+            )
+            embed.set_image(url=f"attachment://betterburn_{character}{page}.png")
+            embed.set_footer(text="Betterburn",icon_url=my_icon)
+
+            await inter.response.send_message(embed=embed, file=file)
         except Exception as e:
-            await inter.response.send_message("Unexpected error occurred: "+repr(e), ephemeral=True)
+            embed = disnake.Embed(
+                title="An unknown error has occurred!",
+                description="Please contact <@154046172254830592>.",
+                color=disnake.Color.from_rgb(255,125,0)
+            )
+            embed.add_field(name="Error",value=repr(e), inline=False)
+            embed.set_footer(text="Betterburn",icon_url=my_icon)
+            
+            await inter.response.send_message(embed=embed, ephemeral=True)
 
 
     @commands.slash_command(name="text", description="Generates text in Rivals of Aether font.")
