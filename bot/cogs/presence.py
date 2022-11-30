@@ -16,10 +16,14 @@ class Presence(commands.Cog):
     def __init__(self, bot):
         self.index = random.randrange(0, len(activities))
         self.bot = bot
-        self.setPresence.start()
+        
 
     async def cog_unload(self):
         self.setPresence.cancel()
+
+    @commands.Cog.listener()
+    async def on_ready(self):
+        self.setPresence.start()
 
     @tasks.loop(seconds=60*5)
     async def setPresence(self):
@@ -27,4 +31,3 @@ class Presence(commands.Cog):
         if (self.index>=len(activities)):
             self.index = 0
         await self.bot.change_presence(activity=disnake.Game(activities[self.index]+" | !betterburn"))
-

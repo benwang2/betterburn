@@ -1,4 +1,4 @@
-discord.py  
+disnake
 flask
 PyNaCl
 dnspython

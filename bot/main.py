@@ -14,7 +14,7 @@ from cogs.leaderboard import Leaderboard
 
 
 client = commands.InteractionBot(
-    test_guilds=[],
+    # test_guilds=[863809747596607538],
     sync_commands_debug = True
 )
 
@@ -61,9 +61,12 @@ async def on_command_error(ctx, error):
 @client.event
 async def on_ready():
     print("betterburn online, v3.00")
+    # client.add_cog(Fuzzy(client))
+
+def load_cogs():
     client.add_cog(Presence(client))
     client.add_cog(Guide(client))
-    # client.add_cog(Fuzzy(client))
     client.add_cog(Leaderboard(client))
 
+load_cogs()
 client.run(os.environ["DISCORD_TOKEN"])
