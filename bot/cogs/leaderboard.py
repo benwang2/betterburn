@@ -7,7 +7,7 @@ from io import BytesIO
 from disnake.ext import commands
 from modules.steamboards import SteamLeaderboard
 
-baseUrl = "https://steamcommunity.com/stats/383980/leaderboards/"
+baseUrl = f"https://steamcommunity.com/stats/{os.environ['STEAM_APP_ID']}/leaderboards/"
 leaderboards = {
     "all":"3277611",
     "random":"3279662",
@@ -132,8 +132,8 @@ class Leaderboard(commands.Cog):
                 return group[0]
         return False
 
-    async def autocomplete_char(inter, string: str) -> List[str]:
-        return [name for name in leaderboards.keys() if string.lower() in name.lower()]
+    # async def autocomplete_char(inter, string: str) -> List[str]:
+    #     return [name for name in leaderboards.keys() if string.lower() in name.lower()]
 
     @commands.slash_command(
         name="ranked",
@@ -145,41 +145,53 @@ class Leaderboard(commands.Cog):
         page: int = 1
     ):
         if not character in leaderboards:
-            await inter.response.send_message("Invalid parameters provided.", ephemeral=True)
+            await inter.response.send_message("Please enter a valid character.", ephemeral=True)
             return
 
         steamboard = SteamLeaderboard(
-            app_id = os.getenv("STEAM_APP_ID"),
+            app_id = os.environ["STEAM_APP_ID"],
             leaderboard_id = leaderboards[character],
-            api_key = os.getenv("STEAM_API_KEY"),
+            api_key = os.environ["STEAM_API_KEY"],
             mute=True
         )
 
         page_start = 1+((page-1)*15)
 
-        data = steamboard.update(start=page_start, limit=16)
+        try:
+            data = steamboard.update(start=page_start, limit=16)
+        except IndexError as e:
+            await inter.response.send_message(e.args[0], ephemeral=True)
+            return
+        except Exception as e:
+            await inter.response.send_message("Failed to get leaderboard from steam.")
+            return
+
         users = data.values()
 
         cell = 0
-        leaderboard = createLeaderboard()
-        
-        for i in range(0, 15):
-            name = cleanText(users[i]["persona"])
-            score = eval(users[i]["score"])
-            if character in characters:
-                setPlayerMain(leaderboard, cell, character)
-            setPlayerName(leaderboard, cell, name)
-            setPlayerScore(leaderboard, cell, score)
-            setPlayerRank(leaderboard, cell, str(page_start+i))
-            cell += 1
+        try:
+            leaderboard = createLeaderboard()
             
-        file = None
-        with BytesIO() as binary:
-            leaderboard.save(binary, 'PNG')
-            binary.seek(0)
-            file = disnake.File(fp=binary, filename="leaderboard.png")
+            for i in range(0, min(15, len(users))):
+                name = cleanText(users[i]["persona"])
+                score = eval(users[i]["score"])
+                rank = users[i]['rank']
+                if character in characters:
+                    setPlayerMain(leaderboard, cell, character)
+                setPlayerName(leaderboard, cell, name)
+                setPlayerScore(leaderboard, cell, score)
+                setPlayerRank(leaderboard, cell, str(rank))
+                cell += 1
+            
+            file = None
+            with BytesIO() as binary:
+                leaderboard.save(binary, 'PNG')
+                binary.seek(0)
+                file = disnake.File(fp=binary, filename=f"ranked_{character}_p{page}.png")
         
-        await inter.response.send_message(file=file)
+            await inter.response.send_message(file=file)
+        except Exception as e:
+            await inter.response.send_message("Unexpected error occurred: "+repr(e), ephemeral=True)
 
 
     @commands.slash_command(name="text", description="Generates text in Rivals of Aether font.")
@@ -239,7 +251,7 @@ class Leaderboard(commands.Cog):
                 else:
 
                     await inter.response.send_message(
-                        file=disnake.File(fp=binary, filename=text+".png")
+                        file=disnake.File(fp=binary, filename=f"betterburn_text.png")
                     )
         except Exception as e:
             await inter.response.send_message(

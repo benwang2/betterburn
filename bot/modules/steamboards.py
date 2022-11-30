@@ -38,7 +38,7 @@ class SteamLeaderboard:
         global numRequests
         numRequests = 0
         url = f"https://steamcommunity.com/stats/{self.__app_id__}/leaderboards/{self.__leaderboard_id__}?xml=1&start={start}"
-        xml, data, personas = [[],[]], odict(), {}
+        xml, data, personas = [[],[],[]], odict(), {}
         if limit != None:
             url += "&end="+str(start+(limit-1))
         try:
@@ -50,12 +50,17 @@ class SteamLeaderboard:
                     root = etree.fromstring(page.content)
                     xml[0].extend(root.xpath("/response/entries/entry/steamid"))
                     xml[1].extend(root.xpath("/response/entries/entry/score"))
+                    xml[2].extend(root.xpath("/response/entries/entry/rank"))
                     if (not self.__mute__):  print("Got leaderboard data["+str(root.xpath("/response/entryStart")[0].text)+":"+str(root.xpath("/response/entryEnd")[0].text)+"] in "+str(time.time()-t_start2)+" seconds.")
                     if limit >= 5000 or limit == None:
                         nextURL = root.xpath("/response/nextRequestURL")
                         if (len(nextURL)==0 or nextURL[0].text==url): break
                         url = nextURL[0].text
                     else: break
+
+            if xml[2][0].text != str(start):
+                max_page = eval(xml[2][0].text) // 15 + 1
+                raise IndexError(f"Page index out of range (max page is {max_page}).")
 
             if (not self.__mute__): print("Took "+str(time.time()-t_start)+" seconds to get all leaderboard entries.")
             t_start = time.time()
@@ -64,7 +69,7 @@ class SteamLeaderboard:
             for i in range(0,len(xml[0])):
                 elmt = xml[0][i]
                 steam_ids.append(elmt.text)
-                data[elmt.text] = {"rank":str(i+1), "score":xml[1][i].text}
+                data[elmt.text] = {"rank":xml[2][i].text, "score":xml[1][i].text}
                 if (len(steam_ids) == len(xml[0]) or i%100==99):
                     usersSlice = steam_ids[i-99:i+1] if i%100 == 99 else steam_ids[:]
                     tmp = self.__getPlayerPersonas__(usersSlice)
@@ -84,6 +89,9 @@ class SteamLeaderboard:
             if (not self.__mute__):  print("Took "+str(time.time()-t_start)+" seconds to combine data sets.")
             self.__data__ = data
             return data
+        except IndexError as e:
+            print(repr(e))
+            raise e
         except Exception as e:
             return {"exception":e}
 
