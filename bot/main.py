@@ -10,7 +10,7 @@ my_secrets.load_env()
 from cogs.presence import Presence
 from cogs.guide import Guide
 from cogs.leaderboard import Leaderboard
-# from cogs.fuzzy import Fuzzy
+from cogs.fuzzy import Fuzzy
 
 
 client = commands.InteractionBot(
@@ -61,7 +61,7 @@ async def on_command_error(ctx, error):
 @client.event
 async def on_ready():
     print("betterburn online, v3.00")
-    # client.add_cog(Fuzzy(client))
+    client.add_cog(Fuzzy(client))
 
 def load_cogs():
     client.add_cog(Presence(client))

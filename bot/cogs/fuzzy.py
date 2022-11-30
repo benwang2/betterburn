@@ -11,20 +11,20 @@ ld_ex = ["""```Air dodge can be used immediately after a wall tech. Aim your rec
 """```1. Wall tech\n2. Air Dodge Left/Right```"""]
 
 resources = [
-    [[ ["!shine", 2, 1, 2, 0, 2, [2,4]] ],"https://gfycat.com/higharidhammerheadshark  *(right trigger bound to strong)*", su_ex],
-    [[ ["!shine", 2, 1, 2, 0, 2, 3] ],"https://gfycat.com/severalheartfelthairstreak  *(z bound to strong)*", su_ex],
-    [[ ["!pity", 2, "flip", 2, [2,4]]],"https://gfycat.com/whisperedeagerbuck\n", pf_ex],
-    [[ ["!pity", 2, "flip", 2, 3]],"https://gfycat.com/grayhighlevelarrowworm\n", pf_ex],
-    [["!ledgedash"],"https://gfycat.com/officialfalsecrocodileskink\n", ld_ex],
-    [["!shine","!shine angles"],"https://i.imgur.com/Zf6Ywes.png"],
+    # [[ ["!shine", 2, 1, 2, 0, 2, [2,4]] ],"https://gfycat.com/higharidhammerheadshark  *(right trigger bound to strong)*", su_ex],
+    # [[ ["!shine", 2, 1, 2, 0, 2, 3] ],"https://gfycat.com/severalheartfelthairstreak  *(z bound to strong)*", su_ex],
+    # [[ ["!pity", 2, "flip", 2, [2,4]]],"https://gfycat.com/whisperedeagerbuck\n", pf_ex],
+    # [[ ["!pity", 2, "flip", 2, 3]],"https://gfycat.com/grayhighlevelarrowworm\n", pf_ex],
+    # [["!ledgedash"],"https://gfycat.com/officialfalsecrocodileskink\n", ld_ex],
+    # [["!shine","!shine angles"],"https://i.imgur.com/Zf6Ywes.png"],
     [["!backshot"],"https://gfycat.com/IndolentShortIndigowingedparrot"],
     [["!shmoost"],"https://gfycat.com/unknownforsakenaztecant-rivalsofaether"],
-    [["!betterburn"],"```\nCommands\n1. !shine upstrong\n2. !shine upstrong [xbone/gcc]\n3. !pity flip\n4. !pity flip [xbone/gcc]\n5. !ledgedash\n6. !sdi \n7. !shine angles\n8. !ranked [character] [page]\n9. !text [content]\n10. !invite```"],
+    # [["!betterburn"],"```\nCommands\n1. !shine upstrong\n2. !shine upstrong [xbone/gcc]\n3. !pity flip\n4. !pity flip [xbone/gcc]\n5. !ledgedash\n6. !sdi \n7. !shine angles\n8. !ranked [character] [page]\n9. !text [content]\n10. !invite```"],
     [["!thegizmo"],"https://gfycat.com/hardfrightenedaustralianfurseal"],
     [["!thejarek"],"https://gfycat.com/uniformornerychrysomelid"],
     [["!the10s"],"https://gfycat.com/failingunrealisticcougar"],
-    [["!sdi"],"https://gfycat.com/insecurepolishedarmyant"],
-    [["!invite"],"https://discord.com/oauth2/authorize?client_id=704757052991602688&permissions=116800&scope=bot"]
+    # [["!sdi"],"https://gfycat.com/insecurepolishedarmyant"],
+    # [["!invite"],"https://discord.com/oauth2/authorize?client_id=704757052991602688&permissions=116800&scope=bot"]
 ]
 
 my_icon = "https://cdn.discordapp.com/app-icons/704757052991602688/4950ad6ade639ed08a8c4b56ca5a6134.png"
