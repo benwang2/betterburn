@@ -127,12 +127,6 @@ def setPlayerRank(img, cell, rank):
         offset += generateCharacter(img, (66-int(width/2)+4+offset, 56+48*cell), char)
 
 class Leaderboard(commands.Cog):
-    def matchCharacter(self, character):
-        for group in aliases:
-            if character in group:
-                return group[0]
-        return False
-
     # async def autocomplete_char(inter, string: str) -> List[str]:
     #     return [name for name in leaderboards.keys() if string.lower() in name.lower()]
 
@@ -264,17 +258,35 @@ class Leaderboard(commands.Cog):
                 img.save(binary, "PNG")
                 binary.seek(0)
                 if tooLong:
+                    embed = disnake.Embed(
+                        title="An error has occurred!",
+                        color=disnake.Color.from_rgb(255,125,0)
+                    )
+                    embed.add_field(name="Error",value="Your message was too long to generate completely. (limit 1024 characters)", inline=False)
+                    embed.set_footer(text="Betterburn",icon_url=my_icon)
                     await inter.response.send_message(
-                        content="Your message was too long to generate completely. (limit 1024 characters)",
+                        embed=embed,
                         ephemeral=True
                     )
                 else:
+                    file = disnake.File(fp=binary, filename=f"betterburn_text.png")
+                    embed = disnake.Embed(
+                        color=disnake.Color.from_rgb(255,125,0)
+                    )
+                    embed.set_image(url=f"attachment://betterburn_text.png")
+                    embed.set_footer(text="Betterburn",icon_url=my_icon)
 
                     await inter.response.send_message(
-                        file=disnake.File(fp=binary, filename=f"betterburn_text.png")
+                        embed=embed,
+                        file=file
                     )
         except Exception as e:
-            await inter.response.send_message(
-                content="Error occured: "+repr(e),
+            embed = disnake.Embed(
+                title="An unknown error has occurred!",
+                description="Please contact <@154046172254830592>.",
+                color=disnake.Color.from_rgb(255,125,0)
             )
-            raise e
+            embed.add_field(name="Error",value=repr(e), inline=False)
+            embed.set_footer(text="Betterburn",icon_url=my_icon)
+            
+            await inter.response.send_message(embed=embed, ephemeral=True)
