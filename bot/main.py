@@ -14,7 +14,7 @@ from cogs.fuzzy import Fuzzy
 
 
 client = commands.InteractionBot(
-    test_guilds=[863809747596607538],
+    test_guilds=[],
     sync_commands_debug = True
 )
 
