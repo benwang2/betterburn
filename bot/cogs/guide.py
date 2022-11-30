@@ -25,7 +25,7 @@ resources = {
     "sdi": {
         "xbox one": "https://gfycat.com/unsteadyremotehummingbird",
         "gamecube": "https://gfycat.com/caninewateryheron",
-        "__embed__": ["""```While in hitstun and in a multi-hit move, you can move your character with DI. Use DI to move your character towards the corner of the stage. This advanced technique can set up for a ledgedash.```""", """```1. DI Offstage\n2. DI towards corner\n3. Wall tech\n4. Air Dodge Left/Right```"""]
+        "__embed__": ["""```While being hit by a multi-hit attack, use DI to move your character towards the corner of the stage. This advanced technique can set up for a ledgedash.```""", """```1. DI Offstage\n2. DI towards corner\n3. Wall tech\n4. Air Dodge Left/Right```"""]
     }
 }
 
