@@ -2,7 +2,8 @@ from typing import Union
 
 import uvicorn
 from fastapi import FastAPI, Request, HTTPException
-from fastapi.responses import HTMLResponse
+from fastapi.encoders import jsonable_encoder
+from fastapi.responses import HTMLResponse, JSONResponse
 
 from pysteamsignin.steamsignin import SteamSignIn
 
@@ -16,15 +17,15 @@ cfg = Config()
 
 
 @app.post("/api/session/")
-def begin_auth(request: Request):
-    data = request.json()
+async def begin_auth(request: Request):
+    data = await request.json()
     discord_id = data.get("discord_id")
 
     if not discord_id:
         raise HTTPException(status_code=400, detail="No discord id was provided")
 
     session_id = create_or_extend_session(discord_id)
-    return {"sessionId": session_id}
+    return JSONResponse(jsonable_encoder({"sessionId": session_id}))
 
 
 @app.get("/api/link/")
@@ -37,7 +38,7 @@ def link(sessionId: Union[str, None] = None):
         raise HTTPException(status_code=400, detail="Session id is invalid")
 
     steamLogin = SteamSignIn()
-    redirect_url = f"http://{cfg.api_url}/auth"
+    redirect_url = f"http://{cfg.api_url}/api/auth"
     if sessionId:
         redirect_url += f"?sessionId={sessionId}"
     encodedData = steamLogin.ConstructURL(redirect_url)
@@ -46,7 +47,7 @@ def link(sessionId: Union[str, None] = None):
 
 
 @app.get("/api/auth/")
-def auth(request: Request, sessionId: str):
+def auth(sessionId: str, request: Request):
 
     if sessionId is None:
         raise HTTPException(status_code=400, detail="No session id was provided")
