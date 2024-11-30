@@ -4,9 +4,8 @@ import discord
 from discord import app_commands
 from api.utils import generate_link_url
 
-import db.discord
 import db.discord.utils
-from db.session.utils import create_or_extend_session
+from db.session.utils import create_or_extend_session, end_session
 
 from .views import LinkView, UnlinkView
 
@@ -33,7 +32,7 @@ async def link(interaction: discord.Interaction):
         description="Click the 'Authenticate' button below to link your account.",
         color=discord.Color.blue(),
     )
-    view = LinkView(link_url)
+    view = LinkView(link_url=link_url, on_cancel=lambda: end_session(session_id))
 
     await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
 
@@ -55,7 +54,8 @@ async def unlink(interaction: discord.Interaction):
             description="Click the 'Confirm' button below to unlink your account.",
             color=discord.Color.blurple(),
         )
-        view = UnlinkView()
+        unlink_user = lambda: db.discord.utils.unlink_user(discord_id)
+        view = UnlinkView(unlink_user)
     else:
         embed = discord.Embed(
             title="Unlink Steam account.",

@@ -12,7 +12,7 @@ cfg = Config()
 
 
 class Session(Base):
-    __tablename__ = "authsessions"
+    __tablename__ = "sessions"
     discord_id = Column(BigInteger, primary_key=True, autoincrement=False)
     session_id = Column(VARCHAR(36), default=lambda _: str(uuid()))
     expires_at = Column(

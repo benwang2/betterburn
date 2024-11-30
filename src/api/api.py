@@ -7,25 +7,16 @@ from fastapi.responses import HTMLResponse, JSONResponse
 
 from pysteamsignin.steamsignin import SteamSignIn
 
-from db.session.utils import create_or_extend_session, is_valid_session
+from db.session.utils import is_valid_session, get_session, end_session
+
+from db.discord.utils import link_user
+
 from config import Config
 
 STEAM_OPENID_URL = "https://steamcommunity.com/openid/login"
 
 app = FastAPI()
 cfg = Config()
-
-
-# @app.post("/api/session/")
-# async def begin_auth(request: Request):
-#     data = await request.json()
-#     discord_id = data.get("discord_id")
-
-#     if not discord_id:
-#         raise HTTPException(status_code=400, detail="No discord id was provided")
-
-#     session_id = create_or_extend_session(discord_id)
-#     return JSONResponse(jsonable_encoder({"sessionId": session_id}))
 
 
 @app.get("/api/link/")
@@ -52,11 +43,15 @@ def auth(sessionId: str, request: Request):
     if sessionId is None:
         raise HTTPException(status_code=400, detail="No session id was provided")
 
-    if not is_valid_session(session_id=sessionId):
+    session = get_session(session_id=sessionId)
+
+    if session is None:
         raise HTTPException(status_code=400, detail="Session id is invalid")
 
     steamLogin = SteamSignIn()
     steamID = steamLogin.ValidateResults(request.query_params)
+
+    user = link_user(user_id=session.discord_id, steam_id=steamID)
 
     print(f"SteamID = {steamID}")
 
