@@ -5,35 +5,35 @@ from ..database import SQLAlchemySession
 
 
 def get_steam_id(user_id):
-    session = SQLAlchemySession()
+    db = SQLAlchemySession()
 
-    user = session.query(User).filter_by(user_id=user_id).first()
+    user = db.query(User).filter_by(user_id=user_id).first()
     if user:
         return user.steam_id
     return None
 
 
 def link_user(user_id, steam_id):
-    session = SQLAlchemySession()
+    db = SQLAlchemySession()
 
-    user = session.query(User).filter_by(user_id=user_id).first()
+    user = db.query(User).filter_by(user_id=user_id).first()
     if user:
         user.steam_id = steam_id
     else:
         user = User(user_id=user_id, steam_id=steam_id)
-        session.add(user)
+        db.add(user)
 
-    session.commit()
+    db.commit()
     return user
 
 
 def unlink_user(user_id):
-    session = SQLAlchemySession()
+    db = SQLAlchemySession()
 
-    user = session.query(User).filter_by(user_id=user_id).first()
+    user = db.query(User).filter_by(user_id=user_id).first()
     if user:
-        session.delete(user)
-        session.commit()
+        db.delete(user)
+        db.commit()
         return user
 
     return None
