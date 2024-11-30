@@ -1,13 +1,13 @@
 import csv
 import datetime
 
-from ..database import Session
+from ..database import SQLAlchemySession
 from .models import LeaderboardRow, Metadata
 
 
 # Insert example data into the cache table
 def _insert_example_data():
-    session = Session()
+    session = SQLAlchemySession()
     try:
         cache_entries = [
             LeaderboardRow(steam_id=12345, score=100, rank=1),
@@ -21,7 +21,7 @@ def _insert_example_data():
 
 # Query example data from the cache table
 def _query_example_data():
-    session = Session()
+    session = SQLAlchemySession()
     try:
         cache_data = session.query(LeaderboardRow).all()
         print("Cache Table:")
@@ -35,7 +35,7 @@ def _query_example_data():
 
 
 def update_metadata(num_rows):
-    session = Session()
+    session = SQLAlchemySession()
 
     try:
         timestamp = datetime.now()
@@ -49,7 +49,7 @@ def update_metadata(num_rows):
 
 # Get score by Steam ID
 def get_score_by_steam_id(steam_id):
-    session = Session()
+    session = SQLAlchemySession()
     try:
         record = session.query(LeaderboardRow).filter_by(steam_id=steam_id).first()
         return record.score if record else None
@@ -67,7 +67,7 @@ def bulk_insert_cache_from_file(file_path):
     Args:
         file_path (str): Path to the input CSV file.
     """
-    session = Session()
+    session = SQLAlchemySession()
     # print("Hi", file_path)
     try:
         records = []
@@ -100,7 +100,7 @@ def bulk_insert_cache_from_file(file_path):
 
 
 def clear_cache_table():
-    session = Session()
+    session = SQLAlchemySession()
     try:
         session.query(LeaderboardRow).delete()
         session.commit()

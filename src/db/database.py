@@ -11,7 +11,7 @@ DATABASE_URL = "sqlite:///betterburn.db"
 engine = create_engine(DATABASE_URL)
 
 # Session factory
-Session = sessionmaker(bind=engine)
+SQLAlchemySession = sessionmaker(bind=engine)
 
 
 # Initialize database

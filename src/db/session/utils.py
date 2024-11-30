@@ -3,7 +3,7 @@ import datetime
 from datetime import timezone as tz
 from datetime import datetime as dt
 
-from ..database import Session
+from ..database import SQLAlchemySession
 from .models import Session as Auth
 from config import Config
 
@@ -11,7 +11,7 @@ cfg = Config()
 
 
 def get_session(discord_id) -> Auth | None:
-    session = Session()
+    session = SQLAlchemySession()
     auth_session = session.query(Auth).filter_by(discord_id=discord_id).first()
     session.close()
 
@@ -19,7 +19,7 @@ def get_session(discord_id) -> Auth | None:
 
 
 def create_or_extend_session(discord_id):
-    session = Session()
+    session = SQLAlchemySession()
     auth_session = session.query(Auth).filter_by(discord_id=discord_id).first()
 
     if auth_session:
@@ -39,7 +39,7 @@ def create_or_extend_session(discord_id):
 
 
 def cull_expired_sessions():
-    session = Session()
+    session = SQLAlchemySession()
     now = dt.now(tz.utc)
     expired_sessions = session.query(Auth).filter(Auth.expires_at < now).all()
 
@@ -51,7 +51,7 @@ def cull_expired_sessions():
 
 
 def is_valid_session(session_id):
-    session = Session()
+    session = SQLAlchemySession()
     auth_session = session.query(Auth).filter_by(session_id=session_id).first()
     session.close()
 

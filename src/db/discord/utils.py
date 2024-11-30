@@ -1,11 +1,11 @@
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from .models import User
-from ..database import Session
+from ..database import SQLAlchemySession
 
 
 def get_steam_id(user_id):
-    session = Session()
+    session = SQLAlchemySession()
 
     user = session.query(User).filter_by(user_id=user_id).first()
     if user:
@@ -14,7 +14,7 @@ def get_steam_id(user_id):
 
 
 def link_user(user_id, steam_id):
-    session = Session()
+    session = SQLAlchemySession()
 
     user = session.query(User).filter_by(user_id=user_id).first()
     if user:
@@ -28,7 +28,7 @@ def link_user(user_id, steam_id):
 
 
 def unlink_user(user_id):
-    session = Session()
+    session = SQLAlchemySession()
 
     user = session.query(User).filter_by(user_id=user_id).first()
     if user:
