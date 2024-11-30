@@ -20,3 +20,19 @@ class LinkView(discord.ui.View):
             color=discord.Color.red(),
         )
         await interaction.response.edit_message(embed=embed, view=None)
+
+
+class UnlinkView(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=60)
+
+    @discord.ui.button(label="Confirm", style=discord.ButtonStyle.green)
+    async def end_interaction(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ):
+        embed = discord.Embed(
+            title="Unlink completed",
+            description="You have unlinked your steam account.",
+            color=discord.Color.blurple(),
+        )
+        await interaction.response.edit_message(embed=embed, view=None)
