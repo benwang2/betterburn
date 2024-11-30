@@ -50,13 +50,6 @@ def cull_expired_sessions():
     session.close()
 
 
-def get_session_for_user(discord_id):
-    session = Session()
-    auth_session = session.query(Auth).filter_by(discord_id=discord_id).first()
-    session.close()
-    return auth_session
-
-
 def is_valid_session(session_id):
     session = Session()
     auth_session = session.query(Auth).filter_by(session_id=session_id).first()
