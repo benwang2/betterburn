@@ -7,7 +7,7 @@ from fastapi.responses import HTMLResponse, JSONResponse
 
 from pysteamsignin.steamsignin import SteamSignIn
 
-from db.auth.utils import create_or_extend_session, is_valid_session
+from db.session.utils import create_or_extend_session, is_valid_session
 from config import Config
 
 STEAM_OPENID_URL = "https://steamcommunity.com/openid/login"
@@ -16,16 +16,16 @@ app = FastAPI()
 cfg = Config()
 
 
-@app.post("/api/session/")
-async def begin_auth(request: Request):
-    data = await request.json()
-    discord_id = data.get("discord_id")
+# @app.post("/api/session/")
+# async def begin_auth(request: Request):
+#     data = await request.json()
+#     discord_id = data.get("discord_id")
 
-    if not discord_id:
-        raise HTTPException(status_code=400, detail="No discord id was provided")
+#     if not discord_id:
+#         raise HTTPException(status_code=400, detail="No discord id was provided")
 
-    session_id = create_or_extend_session(discord_id)
-    return JSONResponse(jsonable_encoder({"sessionId": session_id}))
+#     session_id = create_or_extend_session(discord_id)
+#     return JSONResponse(jsonable_encoder({"sessionId": session_id}))
 
 
 @app.get("/api/link/")
@@ -63,4 +63,5 @@ def auth(sessionId: str, request: Request):
     return HTMLResponse("Authenticated")
 
 
-uvicorn.run(app, host="0.0.0.0", port=8000)
+def start():
+    uvicorn.run(app, host="0.0.0.0", port=8000)
