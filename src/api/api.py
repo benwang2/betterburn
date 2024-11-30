@@ -51,9 +51,12 @@ def auth(sessionId: str, request: Request):
     steamLogin = SteamSignIn()
     steamID = steamLogin.ValidateResults(request.query_params)
 
-    user = link_user(user_id=session.discord_id, steam_id=steamID)
+    link_user(user_id=session.discord_id, steam_id=steamID)
+    end_session(session_id=sessionId)
 
-    print(f"SteamID = {steamID}")
+    # Here, we should return an event to Discord.
+
+    # print(f"SteamID = {steamID}")
 
     return HTMLResponse("Authenticated")
 
