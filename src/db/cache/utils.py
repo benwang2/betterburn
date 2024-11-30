@@ -57,6 +57,43 @@ def get_score_by_steam_id(steam_id):
         db.close()
 
 
+def bulk_insert_cache_from_list(leaderboard: list):
+    """
+    Bulk inserts records into the 'cache' table from a list.
+
+    The file should have headers describing the columns.
+    The index of the row (0-based) will be used as the 'rank'.
+
+    Args:
+        leaderboard (List<Dict>)
+    """
+    db = SQLAlchemySession()
+    # print("Hi", file_path)
+    try:
+        records = []
+        print(leaderboard[0])
+
+        for steam_id, data in leaderboard:
+            steam_id = int(steam_id)
+            score = int(data.get("score"))
+            rank = int(data.get("rank"))
+            # print(steam_id, score, rank)
+            records.append(LeaderboardRow(steam_id=steam_id, score=score, rank=rank))
+
+        # Bulk insert using SQLAlchemy
+
+        # Update metadata table with current timestamp and player count
+
+        db.bulk_save_objects(records)
+        db.commit()
+        print(f"Successfully inserted {len(records)} records into the 'cache' table.")
+    except Exception as e:
+        db.rollback()
+        print(f"Error occurred during bulk insert: {e}")
+    finally:
+        db.close()
+
+
 def bulk_insert_cache_from_file(file_path):
     """
     Bulk inserts records into the 'cache' table from a CSV file.

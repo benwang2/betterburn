@@ -124,6 +124,9 @@ class SteamLeaderboard:
             }
             writer.writerow(row)
 
+    def to_list(self):
+        return self.__data__.items()
+
 
 if __name__ == "__main__":
     board = SteamLeaderboard(2217000, 14800950, False)
