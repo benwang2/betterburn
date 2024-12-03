@@ -60,8 +60,13 @@ def test_api():
 if __name__ == "__main__":
     import db.session.utils
 
+    # import db.database
+
     init_db()
-    test_api()
+
+    db.session.utils.delete_all_sessions()
+
+    # test_api()
     # test_auth()
 
     # board = SteamLeaderboard(2217000, 14800950, False)

@@ -116,6 +116,4 @@ async def on_ready():
 
 
 async def start_bot():
-    await client.start(
-        "NzExMDcxNzk5MzI4MTEyNjcx.G3R2h9.-TVAaUcZUYwlU9ELD00Pn0F8lVTv-DMnU2_DEU"
-    )
+    await client.start(TOKEN)
