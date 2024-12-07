@@ -5,9 +5,9 @@ from discord import app_commands
 from api.utils import generate_link_url
 
 import db.discord.utils
+import db.cache.utils
 from db.session.utils import create_or_extend_session, end_session
 
-from db.cache.utils import get_score_by_steam_id
 
 from .views import LinkView, UnlinkView
 
@@ -102,9 +102,38 @@ async def check(interaction: discord.Interaction, member: discord.Member):
 
     if member_steam_id != None:
         embed.add_field(
-            name="ELO", value=get_score_by_steam_id(member_steam_id), inline=False
+            name="ELO",
+            value=db.cache.utils.get_score_by_steam_id(member_steam_id),
+            inline=False,
         )
     embed.set_thumbnail(url=member.display_avatar.url)
+
+    await interaction.response.send_message(embed=embed, ephemeral=True)
+
+
+@tree.command(
+    name="status",
+    description="Check the status of the database.",
+    guild=discord.Object(id=cfg.test_guild),
+)
+async def status(interaction: discord.Interaction):
+    """Handles the /status command."""
+
+    embed: discord.Embed = discord.Embed(
+        title="Steamboard Status",
+        color=discord.Color.green(),
+    )
+
+    last_updated = db.cache.utils.last_updated_at()
+    last_updated_ut = f"<t:{int(last_updated.timestamp())}:F>"
+    embed.add_field(name="Last updated", value=last_updated_ut, inline=False)
+
+    player_count = db.cache.utils.get_player_count()
+    embed.add_field(
+        name="Number of Players",
+        value=player_count,
+        inline=False,
+    )
 
     await interaction.response.send_message(embed=embed, ephemeral=True)
 
