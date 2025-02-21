@@ -146,3 +146,21 @@ def clear_cache_table():
         print(f"Error occurred while clearing cache table: {e}")
     finally:
         db.close()
+
+
+def last_updated_at():
+    db = SQLAlchemySession()
+    try:
+        metadata = db.query(Metadata).order_by(Metadata.timestamp.desc()).first()
+        return metadata.timestamp if metadata else None
+    finally:
+        db.close()
+
+
+def get_player_count():
+    db = SQLAlchemySession()
+    try:
+        metadata = db.query(Metadata).order_by(Metadata.timestamp.desc()).first()
+        return metadata.player_count if metadata else None
+    finally:
+        db.close()
