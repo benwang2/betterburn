@@ -47,5 +47,5 @@ class UnlinkView(discord.ui.View):
             description="You have unlinked your steam account.",
             color=discord.Color.blurple(),
         )
-        self.callback()
+        await self.callback()
         await interaction.response.edit_message(embed=embed, view=None)

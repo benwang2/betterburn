@@ -38,7 +38,7 @@ def link(sessionId: Union[str, None] = None):
 
 
 @app.get("/api/auth/")
-def auth(sessionId: str, request: Request):
+async def auth(sessionId: str, request: Request):
 
     if sessionId is None:
         raise HTTPException(status_code=400, detail="No session id was provided")
@@ -51,12 +51,8 @@ def auth(sessionId: str, request: Request):
     steamLogin = SteamSignIn()
     steamID = steamLogin.ValidateResults(request.query_params)
 
-    link_user(user_id=session.discord_id, steam_id=steamID)
+    await link_user(user_id=session.discord_id, steam_id=steamID)
     end_session(session_id=sessionId)
-
-    # Here, we should return an event to Discord.
-
-    # print(f"SteamID = {steamID}")
 
     return HTMLResponse("Authenticated")
 

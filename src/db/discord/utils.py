@@ -2,6 +2,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from .models import User
 from ..database import SQLAlchemySession
+from signals import onUserLinked, onUserUnlinked
 
 
 def get_steam_id(user_id):
@@ -13,7 +14,7 @@ def get_steam_id(user_id):
     return None
 
 
-def link_user(user_id, steam_id):
+async def link_user(user_id, steam_id):
     db = SQLAlchemySession()
 
     user = db.query(User).filter_by(user_id=user_id).first()
@@ -23,15 +24,17 @@ def link_user(user_id, steam_id):
         user = User(user_id=user_id, steam_id=steam_id)
         db.add(user)
 
+    await onUserLinked.emit(user.user_id, user.steam_id)
     db.commit()
     return user
 
 
-def unlink_user(user_id):
+async def unlink_user(user_id):
     db = SQLAlchemySession()
 
     user = db.query(User).filter_by(user_id=user_id).first()
     if user:
+        await onUserUnlinked.emit(user.user_id, user.steam_id)
         db.delete(user)
         db.commit()
         return user

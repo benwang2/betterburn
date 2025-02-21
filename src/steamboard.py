@@ -3,6 +3,9 @@ from indexed import IndexedOrderedDict as odict
 import requests, time
 from lxml import etree
 import csv
+from config import Config
+
+cfg = Config()
 
 
 class SteamLeaderboard:
@@ -127,6 +130,9 @@ class SteamLeaderboard:
     def to_list(self):
         return self.__data__.items()
 
+
+leaderboard = SteamLeaderboard(cfg.app_id, cfg.leaderboard_id, False)
+leaderboard.update()
 
 if __name__ == "__main__":
     board = SteamLeaderboard(2217000, 14800950, False)

@@ -7,8 +7,8 @@ from db.database import init_db
 import db.session.utils
 import db.cache.utils
 
-from steamboard.steamboard import SteamLeaderboard
 from config import Config
+from steamboard import leaderboard
 
 cfg = Config()
 
@@ -16,9 +16,6 @@ cfg = Config()
 # Start both the bot and the FastAPI server
 def run():
     init_db()
-
-    leaderboard = SteamLeaderboard(cfg.app_id, cfg.leaderboard_id, mute=False)
-    leaderboard.update()
 
     db.cache.utils.clear_cache_table()
     db.cache.utils.bulk_insert_cache_from_list(leaderboard.to_list())
