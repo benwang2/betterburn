@@ -1,5 +1,6 @@
 from config import Config
 
+import asyncio
 import discord
 from discord import app_commands
 from api.utils import generate_link_url
@@ -9,6 +10,8 @@ import db.cache.utils
 import db.discord.utils
 import db.cache.utils
 from db.session.utils import create_or_extend_session, end_session
+
+from bridge import create_linked_session, find_linked_session
 
 
 from .views import LinkView, UnlinkView
@@ -38,37 +41,60 @@ async def link(interaction: discord.Interaction):
         color=discord.Color.blue(),
     )
     view = LinkView(link_url=link_url, on_cancel=lambda: end_session(session_id))
-    message = await interaction.response.send_message(
-        embed=embed, view=view, ephemeral=True
-    )
+    await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
 
-    class UserLinkedHandler:
-        def __init__(self, discord_id, message):
-            self.discord_id = discord_id
-            self.message = message
-            self.connection = None
+    async def handler(steam_id):
+        try:
+            message = await interaction.original_response()
+            embed = discord.Embed(
+                title="You have linked your Discord account. Run `/verify` to verify your rank.",
+                description=f"Your account was linked to SteamID: {steam_id}",
+                color=discord.Color.green(),
+            )
+            await message.edit(embed=embed, view=None)
+            # await interaction.followup.send(
+            #     embed=discord.Embed(
+            #         title="You have linked your Discord account.",
+            #         description=f"Your account was linked to SteamID: {steam_id}",
+            #         color=discord.Color.green(),
+            #     )
+            # )
+        except Exception as e:
+            print(f"Failed to update message: {e}")
 
-        def __call__(self, connection):
-            async def handler(user_id, steam_id):
-                print("New authentication:", user_id, steam_id)
-                if user_id == self.discord_id:
-                    embed = discord.Embed(
-                        title="You have linked your Discord account.",
-                        description=f"Your account was linked to SteamID: {steam_id}",
-                        color=discord.Color.green(),
-                    )
-                    await interaction.edit_original_response(embed=embed)
-                    connection.disconnect()
+    async def event(*args, **kwargs):
+        client.loop.create_task(handler(*args, **kwargs))
 
-            return handler
+    linked_session = create_linked_session(session_id=session_id, discord_id=discord_id)
+    linked_session.setEventHandler(event)
 
-        def connect(self):
-            self.connection = onUserLinked.connect(self(self.connection))
-            return self.connection
+    # class UserLinkedHandler:
+    #     def __init__(self, discord_id, message):
+    #         self.discord_id = discord_id
+    #         self.message = message
+    #         self.connection = None
 
-    # Create and connect the handler
-    handler = UserLinkedHandler(discord_id, message)
-    cnx = handler.connect()
+    #     def __call__(self, connection):
+    #         async def handler(user_id, steam_id):
+    #             print("New authentication:", user_id, steam_id)
+    #             if user_id == self.discord_id:
+    #                 embed = discord.Embed(
+    #                     title="You have linked your Discord account.",
+    #                     description=f"Your account was linked to SteamID: {steam_id}",
+    #                     color=discord.Color.green(),
+    #                 )
+    #                 await interaction.edit_original_response(embed=embed)
+    #                 connection.disconnect()
+
+    #         return handler
+
+    #     def connect(self):
+    #         self.connection = onUserLinked.connect(self(self.connection))
+    #         return self.connection
+
+    # # Create and connect the handler
+    # handler = UserLinkedHandler(discord_id, message)
+    # cnx = handler.connect()
 
 
 @tree.command(

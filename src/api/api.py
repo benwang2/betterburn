@@ -13,6 +13,8 @@ from db.discord.utils import link_user
 
 from config import Config
 
+from bridge import find_linked_session, remove_linked_session_by_id
+
 STEAM_OPENID_URL = "https://steamcommunity.com/openid/login"
 
 app = FastAPI()
@@ -37,7 +39,7 @@ def link(sessionId: Union[str, None] = None):
     return steamLogin.RedirectUser(encodedData)
 
 
-@app.get("/api/auth/")
+@app.get("/api/auth")
 async def auth(sessionId: str, request: Request):
 
     if sessionId is None:
@@ -52,9 +54,17 @@ async def auth(sessionId: str, request: Request):
     steamID = steamLogin.ValidateResults(request.query_params)
 
     await link_user(user_id=session.discord_id, steam_id=steamID)
+
+    linked_session = find_linked_session(session_id=sessionId)
+
+    if linked_session:
+        print("Found session:" + linked_session.session_id)
+        await linked_session.event(steamID)
+        remove_linked_session_by_id(linked_session.session_id)
+
     end_session(session_id=sessionId)
 
-    return HTMLResponse("Authenticated")
+    return HTMLResponse(f"Authenticated")
 
 
 def start():
