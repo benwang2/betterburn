@@ -1,5 +1,5 @@
 import csv
-import datetime
+from datetime import datetime, timezone
 
 from ..database import SQLAlchemySession
 from .models import LeaderboardRow, Metadata
@@ -38,10 +38,10 @@ def update_metadata(num_rows):
     db = SQLAlchemySession()
 
     try:
-        timestamp = datetime.now()
+        timestamp = datetime.now(timezone.utc)
 
         db.query(Metadata).delete()
-        metadata_entry = Metadata(timestamp=timestamp, player_count=num_rows)
+        metadata_entry = Metadata(updated=timestamp, player_count=num_rows)
         db.add(metadata_entry)
     finally:
         db.close()
@@ -71,7 +71,6 @@ def bulk_insert_cache_from_list(leaderboard: list):
     # print("Hi", file_path)
     try:
         records = []
-        print(leaderboard[0])
 
         for steam_id, data in leaderboard:
             steam_id = int(steam_id)
@@ -86,7 +85,6 @@ def bulk_insert_cache_from_list(leaderboard: list):
 
         db.bulk_save_objects(records)
         db.commit()
-        print(f"Successfully inserted {len(records)} records into the 'cache' table.")
     except Exception as e:
         db.rollback()
         print(f"Error occurred during bulk insert: {e}")

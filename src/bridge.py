@@ -37,7 +37,6 @@ def find_linked_session(session_id) -> LinkedSession | None:
 
 def create_linked_session(session_id: str, discord_id: str) -> LinkedSession:
     sess = LinkedSession(session_id=session_id, discord_id=discord_id)
-
     sessions.append(sess)
 
     return sess
@@ -48,3 +47,13 @@ def remove_linked_session_by_id(session_id: str):
         if sess.session_id == session_id:
             sessions.remove(sess)
             break
+
+
+def cull_expired_linked_sessions():
+    sessions_to_cull = [
+        sess
+        for sess in sessions
+        if (datetime.now(timezone.utc) - sess.created_at).seconds > 60
+    ]
+    for sess in sessions_to_cull:
+        sessions.remove(sess)

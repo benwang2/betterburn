@@ -14,6 +14,7 @@ class Config:
     app_id: str = cfg["app_id"]
     discord_token: str = cfg["discord_token"]
     leaderboard_id: str = cfg["leaderboard_id"]
+    cache_update_interval: int = cfg["cache_update_interval"]
     session_duration: str = cfg["session_duration"]
     test_guild: str = cfg["test_guild"]
 

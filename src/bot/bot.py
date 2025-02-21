@@ -2,6 +2,7 @@ from config import Config
 
 import asyncio
 import discord
+from discord.ext.commands import Bot
 from discord import app_commands
 from api.utils import generate_link_url
 
@@ -13,23 +14,24 @@ from db.session.utils import create_or_extend_session, end_session
 
 from bridge import create_linked_session, find_linked_session
 
-
 from .views import LinkView, UnlinkView
-from steamboard import leaderboard
-from signals import onUserLinked, Connection
+
+from .cogs.maid import Maid
+
+import logging
 
 cfg = Config()
 TOKEN = cfg.discord_token
 
 intents = discord.Intents.default()
-client = discord.Client(intents=intents)
-tree = app_commands.CommandTree(client)
+client = Bot(command_prefix="", intents=intents)
+# tree = app_commands.CommandTree(client)
 
 
-@tree.command(
+@client.tree.command(
     name="link",
     description="Link your Discord account to a Steam account.",
-    guild=discord.Object(id=cfg.test_guild),
+    guilds=[discord.Object(id=guild_id) for guild_id in cfg.test_guild],
 )
 async def link(interaction: discord.Interaction):
     discord_id = interaction.user.id
@@ -97,10 +99,10 @@ async def link(interaction: discord.Interaction):
     # cnx = handler.connect()
 
 
-@tree.command(
+@client.tree.command(
     name="unlink",
     description="Unlinks any existing steam account.",
-    guild=discord.Object(id=cfg.test_guild),
+    guilds=[discord.Object(id=guild_id) for guild_id in cfg.test_guild],
 )
 async def unlink(interaction: discord.Interaction):
     discord_id = interaction.user.id
@@ -126,10 +128,10 @@ async def unlink(interaction: discord.Interaction):
     await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
 
 
-@tree.command(
+@client.tree.command(
     name="verify",
     description="Verify your rank and receive the respective role.",
-    guild=discord.Object(id=cfg.test_guild),
+    guilds=[discord.Object(id=guild_id) for guild_id in cfg.test_guild],
 )
 # @app_commands.describe(score="The score you want to test")
 async def verify(
@@ -189,10 +191,10 @@ async def verify(
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
 
 
-@tree.command(
+@client.tree.command(
     name="check",
     description="Check information about a specific member.",
-    guild=discord.Object(id=cfg.test_guild),
+    guilds=[discord.Object(id=guild_id) for guild_id in cfg.test_guild],
 )
 @app_commands.describe(member="The member you want to check")
 async def check(interaction: discord.Interaction, member: discord.Member):
@@ -232,10 +234,10 @@ async def check(interaction: discord.Interaction, member: discord.Member):
     await interaction.response.send_message(embed=embed, ephemeral=True)
 
 
-@tree.command(
+@client.tree.command(
     name="status",
     description="Check the status of the database.",
-    guild=discord.Object(id=cfg.test_guild),
+    guilds=[discord.Object(id=guild_id) for guild_id in cfg.test_guild],
 )
 async def status(interaction: discord.Interaction):
     """Handles the /status command."""
@@ -262,7 +264,17 @@ async def status(interaction: discord.Interaction):
 @client.event
 async def on_ready():
 
-    await tree.sync(guild=discord.Object(id=cfg.test_guild))
+    for guild_id in cfg.test_guild:
+        try:
+            await client.tree.sync(guild=discord.Object(id=guild_id))
+        except discord.Forbidden as ex:
+            # Handle forbidden errors (e.g., bot lacks permissions)
+            print(
+                f"Discord bot lacks permissions to sync commands to guild_id = {guild_id}"
+            )
+        except Exception as ex:
+            print(ex)
+    await client.add_cog(Maid(client))
     print(f"Logged in as {client.user}")
 
 

@@ -17,11 +17,6 @@ cfg = Config()
 def run():
     init_db()
 
-    db.cache.utils.clear_cache_table()
-    db.cache.utils.bulk_insert_cache_from_list(leaderboard.to_list())
-
-    db.session.utils.cull_expired_sessions()
-
     # Run FastAPI in a background thread
     fastapi_thread = threading.Thread(target=start_fastapi)
     fastapi_thread.start()
