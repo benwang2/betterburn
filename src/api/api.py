@@ -17,7 +17,7 @@ from db.discord.utils import link_user
 
 from config import Config
 
-from bridge import find_linked_session, remove_linked_session_by_id
+from bridge import find_linked_session, remove_linked_session_by_id, set_api_url
 
 STEAM_OPENID_URL = "https://steamcommunity.com/openid/login"
 
@@ -32,11 +32,12 @@ APPLICATION_PORT = 5000
 async def lifespan(app: FastAPI):
     print("NGROK FOrward")
     ngrok.set_auth_token(NGROK_AUTH_TOKEN)
-    listener = ngrok.forward(
+    listener = await ngrok.forward(
         addr=8000,
         labels=NGROK_EDGE,
-        proto="labeled",
+        proto="http",
     )
+    set_api_url(listener.url())
     yield
     ngrok.disconnect()
 

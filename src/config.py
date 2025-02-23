@@ -11,6 +11,7 @@ cfg = load_cfg()
 
 class Config:
     api_url: str = cfg["api_url"]
+    ext_api_url: str = ""
     application_port: str = cfg["application_port"]
     app_id: str = cfg["app_id"]
     discord_token: str = cfg["discord_token"]

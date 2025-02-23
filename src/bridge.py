@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 
 import discord
 from discord import Message
+from config import Config
 
 
 class LinkedSession:
@@ -57,3 +58,7 @@ def cull_expired_linked_sessions():
     ]
     for sess in sessions_to_cull:
         sessions.remove(sess)
+
+
+def set_api_url(api_url: str):
+    Config.api_url = api_url
