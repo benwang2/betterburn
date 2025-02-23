@@ -17,6 +17,7 @@ from bridge import create_linked_session, find_linked_session
 from .views import LinkView, UnlinkView
 
 from .cogs.maid import Maid
+from .cogs.roles import Helper
 
 import logging
 
@@ -24,7 +25,7 @@ cfg = Config()
 TOKEN = cfg.discord_token
 
 intents = discord.Intents.default()
-client = Bot(command_prefix="", intents=intents)
+client: Bot = Bot(command_prefix="", intents=intents)
 # tree = app_commands.CommandTree(client)
 
 
@@ -54,13 +55,6 @@ async def link(interaction: discord.Interaction):
                 color=discord.Color.green(),
             )
             await message.edit(embed=embed, view=None)
-            # await interaction.followup.send(
-            #     embed=discord.Embed(
-            #         title="You have linked your Discord account.",
-            #         description=f"Your account was linked to SteamID: {steam_id}",
-            #         color=discord.Color.green(),
-            #     )
-            # )
         except Exception as e:
             print(f"Failed to update message: {e}")
 
@@ -69,34 +63,6 @@ async def link(interaction: discord.Interaction):
 
     linked_session = create_linked_session(session_id=session_id, discord_id=discord_id)
     linked_session.setEventHandler(event)
-
-    # class UserLinkedHandler:
-    #     def __init__(self, discord_id, message):
-    #         self.discord_id = discord_id
-    #         self.message = message
-    #         self.connection = None
-
-    #     def __call__(self, connection):
-    #         async def handler(user_id, steam_id):
-    #             print("New authentication:", user_id, steam_id)
-    #             if user_id == self.discord_id:
-    #                 embed = discord.Embed(
-    #                     title="You have linked your Discord account.",
-    #                     description=f"Your account was linked to SteamID: {steam_id}",
-    #                     color=discord.Color.green(),
-    #                 )
-    #                 await interaction.edit_original_response(embed=embed)
-    #                 connection.disconnect()
-
-    #         return handler
-
-    #     def connect(self):
-    #         self.connection = onUserLinked.connect(self(self.connection))
-    #         return self.connection
-
-    # # Create and connect the handler
-    # handler = UserLinkedHandler(discord_id, message)
-    # cnx = handler.connect()
 
 
 @client.tree.command(
@@ -177,6 +143,26 @@ async def verify(
             description=f"{rank} - {score}",
             color=color,
         )
+
+        # if interaction.guild_id == 297229405552377856:
+        #     ranks = (
+        #         "Stone",
+        #         "Bronze",
+        #         "Silver",
+        #         "Gold",
+        #         "Platinum",
+        #         "Diamond",
+        #         "Master",
+        #     )
+        #     roles_to_remove = tuple(
+        #         discord.utils.get(interaction.guild.roles, name=name)
+        #         for name in tuple(ranks)
+        #     )
+        #     rank_role = discord.utils.get(interaction.guild.roles, name=rank)
+
+        #     await interaction.user.remove_roles(*roles_to_remove)
+        #     await interaction.user.add_roles(rank_role)
+
         embed.set_image(url=f"attachment://{rank.lower()}.png")
         await interaction.response.send_message(
             embed=embed, file=file, view=view, ephemeral=True
@@ -275,6 +261,7 @@ async def on_ready():
         except Exception as ex:
             print(ex)
     await client.add_cog(Maid(client))
+    await client.add_cog(Helper(client))
     print(f"Logged in as {client.user}")
 
 

@@ -1,6 +1,10 @@
 from typing import Union
 
+from contextlib import asynccontextmanager
+
+import ngrok
 import uvicorn
+
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -17,8 +21,27 @@ from bridge import find_linked_session, remove_linked_session_by_id
 
 STEAM_OPENID_URL = "https://steamcommunity.com/openid/login"
 
-app = FastAPI()
 cfg = Config()
+
+NGROK_AUTH_TOKEN = cfg.ngrok_auth_token  # getenv("NGROK_AUTH_TOKEN", "")
+NGROK_EDGE = "edge:edghts_"
+APPLICATION_PORT = 5000
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    print("NGROK FOrward")
+    ngrok.set_auth_token(NGROK_AUTH_TOKEN)
+    listener = ngrok.forward(
+        addr=8000,
+        labels=NGROK_EDGE,
+        proto="labeled",
+    )
+    yield
+    ngrok.disconnect()
+
+
+app = FastAPI(lifespan=lifespan)
 
 
 @app.get("/api/link/")
@@ -68,4 +91,4 @@ async def auth(sessionId: str, request: Request):
 
 
 def start():
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host=cfg.api_url, port=cfg.application_port)
