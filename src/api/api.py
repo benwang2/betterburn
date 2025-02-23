@@ -17,7 +17,12 @@ from db.discord.utils import link_user
 
 from config import Config
 
-from bridge import find_linked_session, remove_linked_session_by_id, set_api_url
+from bridge import (
+    find_linked_session,
+    remove_linked_session_by_id,
+    set_ext_api_url,
+    get_ext_api_url,
+)
 
 STEAM_OPENID_URL = "https://steamcommunity.com/openid/login"
 
@@ -30,14 +35,14 @@ APPLICATION_PORT = 5000
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    print("NGROK FOrward")
     ngrok.set_auth_token(NGROK_AUTH_TOKEN)
     listener = await ngrok.forward(
         addr=8000,
         labels=NGROK_EDGE,
         proto="http",
     )
-    set_api_url(listener.url())
+    print(f"ngrok tunnel URL: {listener.url()}")
+    set_ext_api_url(listener.url())
     yield
     ngrok.disconnect()
 
@@ -55,7 +60,7 @@ def link(sessionId: Union[str, None] = None):
         raise HTTPException(status_code=400, detail="Session id is invalid")
 
     steamLogin = SteamSignIn()
-    redirect_url = f"http://{cfg.api_url}/api/auth"
+    redirect_url = f"{get_ext_api_url()}/api/auth"
     if sessionId:
         redirect_url += f"?sessionId={sessionId}"
     encodedData = steamLogin.ConstructURL(redirect_url)

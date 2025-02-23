@@ -60,5 +60,9 @@ def cull_expired_linked_sessions():
         sessions.remove(sess)
 
 
-def set_api_url(api_url: str):
+def set_ext_api_url(api_url: str):
     Config.api_url = api_url
+
+
+def get_ext_api_url():
+    return Config.api_url
