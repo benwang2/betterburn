@@ -27,9 +27,8 @@ class Maid(commands.Cog):
 
     @tasks.loop(seconds=cfg.cache_update_interval)
     async def update_cache(self):
-        pass
-        # self.leaderboard.update()
+        self.leaderboard.update()
 
-        # db.cache.utils.clear_cache_table()
-        # db.cache.utils.bulk_insert_cache_from_list(self.leaderboard.to_list())
-        # db.cache.utils.update_metadata(len(self.leaderboard))
+        db.cache.utils.clear_cache_table()
+        db.cache.utils.bulk_insert_cache_from_list(self.leaderboard.to_list())
+        db.cache.utils.update_metadata(len(self.leaderboard))

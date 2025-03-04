@@ -143,30 +143,27 @@ async def verify(
             description=f"{rank} - {score}",
             color=color,
         )
+        
+        if interaction.guild_id == 297229405552377856:
+            ranks_to_remove: list = [key.capitalize() for key in cfg.roles.keys()]
+            ranks_to_remove.remove(rank)
 
-        # if interaction.guild_id == 297229405552377856:
-        #     ranks = (
-        #         "Stone",
-        #         "Bronze",
-        #         "Silver",
-        #         "Gold",
-        #         "Platinum",
-        #         "Diamond",
-        #         "Master",
-        #     )
-        #     roles_to_remove = tuple(
-        #         discord.utils.get(interaction.guild.roles, name=name)
-        #         for name in tuple(ranks)
-        #     )
-        #     rank_role = discord.utils.get(interaction.guild.roles, name=rank)
+            roles_to_remove = tuple(
+                discord.utils.get(interaction.guild.roles, name=name)
+                for name in tuple(ranks_to_remove)
+            )
+            role = discord.utils.get(interaction.guild.roles, name=rank)
 
-        #     await interaction.user.remove_roles(*roles_to_remove)
-        #     await interaction.user.add_roles(rank_role)
+            owned_roles = [role.name for role in interaction.user.roles]
+            if not rank in owned_roles:
+                await interaction.user.remove_roles(*roles_to_remove)
+                await interaction.user.add_roles(role)
 
-        embed.set_image(url=f"attachment://{rank.lower()}.png")
-        await interaction.response.send_message(
-            embed=embed, file=file, view=view, ephemeral=True
-        )
+            embed.set_image(url=f"attachment://{rank.lower()}.png")
+
+         await interaction.response.send_message(
+             embed=embed, file=file, view=view, ephemeral=True
+         )
     else:
         embed = discord.Embed(
             title="Link a Steam account.",
