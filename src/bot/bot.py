@@ -160,10 +160,10 @@ async def verify(
                 await interaction.user.add_roles(role)
 
             embed.set_image(url=f"attachment://{rank.lower()}.png")
-
-         await interaction.response.send_message(
+        
+        await interaction.response.send_message(
              embed=embed, file=file, view=view, ephemeral=True
-         )
+        )
     else:
         embed = discord.Embed(
             title="Link a Steam account.",

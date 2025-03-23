@@ -2,7 +2,6 @@ from typing import Union
 
 from contextlib import asynccontextmanager
 
-import ngrok
 import uvicorn
 
 from fastapi import FastAPI, Request, HTTPException
@@ -27,29 +26,8 @@ from bridge import (
 STEAM_OPENID_URL = "https://steamcommunity.com/openid/login"
 
 cfg = Config()
-
-NGROK_AUTH_TOKEN = cfg.ngrok_auth_token  # getenv("NGROK_AUTH_TOKEN", "")
-NGROK_EDGE = "edge:edghts_"
-APPLICATION_PORT = 5000
-
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    ngrok.set_auth_token(NGROK_AUTH_TOKEN)
-    listener = await ngrok.forward(
-        addr=8000,
-        labels=NGROK_EDGE,
-        proto="http",
-    )
-    print(f"ngrok tunnel URL: {listener.url()}")
-    set_ext_api_url(listener.url())
-    yield
-    ngrok.disconnect()
-
-
-app = FastAPI(lifespan=lifespan)
-
-
+app = FastAPI()
+    
 @app.get("/api/link/")
 def link(sessionId: Union[str, None] = None):
 

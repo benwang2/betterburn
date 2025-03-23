@@ -8,10 +8,7 @@ import db.session.utils
 import db.cache.utils
 
 from config import Config
-from steamboard import leaderboard
-
 cfg = Config()
-
 
 # Start both the bot and the FastAPI server
 def run():
