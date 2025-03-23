@@ -1,12 +1,9 @@
 from typing import Union
 
-from contextlib import asynccontextmanager
-
 import uvicorn
 
 from fastapi import FastAPI, Request, HTTPException
-from fastapi.encoders import jsonable_encoder
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse
 
 from pysteamsignin.steamsignin import SteamSignIn
 
@@ -19,7 +16,6 @@ from config import Config
 from bridge import (
     find_linked_session,
     remove_linked_session_by_id,
-    set_ext_api_url,
     get_ext_api_url,
 )
 
@@ -27,7 +23,8 @@ STEAM_OPENID_URL = "https://steamcommunity.com/openid/login"
 
 cfg = Config()
 app = FastAPI()
-    
+
+
 @app.get("/api/link/")
 def link(sessionId: Union[str, None] = None):
 

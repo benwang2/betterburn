@@ -1,4 +1,4 @@
-from sqlalchemy import Column, BigInteger, create_engine
+from sqlalchemy import Column, BigInteger
 from ..base import Base
 
 

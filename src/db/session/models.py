@@ -1,4 +1,4 @@
-from sqlalchemy import Column, BigInteger, Integer, TIMESTAMP, VARCHAR
+from sqlalchemy import Column, BigInteger, TIMESTAMP, VARCHAR
 from ..base import Base
 
 import datetime

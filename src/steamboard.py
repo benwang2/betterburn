@@ -1,6 +1,6 @@
-import collections.abc
 from indexed import IndexedOrderedDict as odict
-import requests, time
+import requests
+import time
 from lxml import etree
 import csv
 from config import Config

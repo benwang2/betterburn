@@ -4,9 +4,6 @@ from db.database import init_db
 def test_cache():
     from time import perf_counter_ns
     from db.cache.utils import (
-        # insert_example_data,
-        # query_example_data,
-        get_score_by_steam_id,
         bulk_insert_cache_from_file,
         clear_cache_table,
     )
@@ -31,7 +28,7 @@ def test_query_cache():
 
 
 def test_steamboard():
-    from steamboard.steamboard import SteamLeaderboard
+    from steamboard import SteamLeaderboard
 
     app_id = 2217000
     leaderboard_id = 14800950
@@ -54,7 +51,7 @@ def test_auth():
 
 
 def test_api():
-    from api import api
+    pass
 
 
 if __name__ == "__main__":

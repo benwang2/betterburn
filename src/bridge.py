@@ -1,8 +1,5 @@
 from typing import List, Callable
 from datetime import datetime, timezone
-
-import discord
-from discord import Message
 from config import Config
 
 

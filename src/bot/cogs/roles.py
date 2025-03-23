@@ -1,10 +1,6 @@
-from discord.ext import tasks, commands
-
-import db.session.utils
-import db.cache.utils
-import bridge
-
+from discord.ext import commands
 from config import Config
+
 
 cfg = Config()
 

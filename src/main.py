@@ -4,11 +4,11 @@ import threading
 from api.api import start as start_fastapi
 from bot.bot import start_bot
 from db.database import init_db
-import db.session.utils
-import db.cache.utils
 
 from config import Config
+
 cfg = Config()
+
 
 # Start both the bot and the FastAPI server
 def run():

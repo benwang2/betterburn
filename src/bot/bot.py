@@ -1,6 +1,5 @@
 from config import Config
 
-import asyncio
 import discord
 from discord.ext.commands import Bot
 from discord import app_commands
@@ -12,14 +11,13 @@ import db.discord.utils
 import db.cache.utils
 from db.session.utils import create_or_extend_session, end_session
 
-from bridge import create_linked_session, find_linked_session
+from bridge import create_linked_session
 
 from .views import LinkView, UnlinkView
 
 from .cogs.maid import Maid
 from .cogs.roles import Helper
 
-import logging
 
 cfg = Config()
 TOKEN = cfg.discord_token
@@ -143,7 +141,7 @@ async def verify(
             description=f"{rank} - {score}",
             color=color,
         )
-        
+
         if interaction.guild_id == 297229405552377856:
             ranks_to_remove: list = [key.capitalize() for key in cfg.roles.keys()]
             ranks_to_remove.remove(rank)
@@ -160,9 +158,9 @@ async def verify(
                 await interaction.user.add_roles(role)
 
             embed.set_image(url=f"attachment://{rank.lower()}.png")
-        
+
         await interaction.response.send_message(
-             embed=embed, file=file, view=view, ephemeral=True
+            embed=embed, file=file, view=view, ephemeral=True
         )
     else:
         embed = discord.Embed(
