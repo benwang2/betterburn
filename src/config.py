@@ -1,9 +1,8 @@
-from yaml import safe_load
-
+from toml import load
 
 def load_cfg() -> dict:
-    with open("./config.yaml", "r") as f:
-        return safe_load(f)
+    with open("./config.toml", "r") as f:
+        return load(f)
 
 
 cfg = load_cfg()

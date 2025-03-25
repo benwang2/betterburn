@@ -26,7 +26,7 @@ app = FastAPI()
 
 
 @app.get("/api/link/")
-def link(sessionId: Union[str, None] = None):
+async def link(sessionId: Union[str, None] = None):
 
     if sessionId is None:
         raise HTTPException(status_code=400, detail="No session id was provided")
@@ -35,7 +35,7 @@ def link(sessionId: Union[str, None] = None):
         raise HTTPException(status_code=400, detail="Session id is invalid")
 
     steamLogin = SteamSignIn()
-    redirect_url = f"{get_ext_api_url()}/api/auth"
+    redirect_url = f"https://{get_ext_api_url()}/api/auth"
     if sessionId:
         redirect_url += f"?sessionId={sessionId}"
     encodedData = steamLogin.ConstructURL(redirect_url)
@@ -68,8 +68,8 @@ async def auth(sessionId: str, request: Request):
 
     end_session(session_id=sessionId)
 
-    return HTMLResponse(f"Authenticated")
+    return HTMLResponse("Authenticated - you may now close this window.")
 
 
 def start():
-    uvicorn.run(app, host=cfg.api_url, port=cfg.application_port)
+    uvicorn.run(app, host="0.0.0.0", port=cfg.application_port)
