@@ -15,8 +15,8 @@ from bridge import create_linked_session
 
 from .views import LinkView, UnlinkView
 
-from .cogs.maid import Maid
-from .cogs.roles import Helper
+from .cogs.maid import MaidCog
+from .cogs.roles import RoleCog
 
 
 cfg = Config()
@@ -153,7 +153,7 @@ async def verify(
             role = discord.utils.get(interaction.guild.roles, name=rank)
 
             owned_roles = [role.name for role in interaction.user.roles]
-            if not rank in owned_roles:
+            if rank not in owned_roles:
                 await interaction.user.remove_roles(*roles_to_remove)
                 await interaction.user.add_roles(role)
 
@@ -204,7 +204,7 @@ async def check(interaction: discord.Interaction, member: discord.Member):
 
     member_steam_id = db.discord.utils.get_steam_id(member.id)
 
-    if member_steam_id != None:
+    if member_steam_id is not None:
         embed.add_field(
             name="ELO",
             value=db.cache.utils.get_score_by_steam_id(member_steam_id),
@@ -253,10 +253,11 @@ async def on_ready():
             print(
                 f"Discord bot lacks permissions to sync commands to guild_id = {guild_id}"
             )
+            print(ex)
         except Exception as ex:
             print(ex)
-    await client.add_cog(Maid(client))
-    await client.add_cog(Helper(client))
+    await client.add_cog(MaidCog(client))
+    await client.add_cog(RoleCog(client))
     print(f"Logged in as {client.user}")
 
 

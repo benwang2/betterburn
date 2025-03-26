@@ -1,4 +1,4 @@
-from .models import User
+from .models import UserTable, RoleTable
 from ..database import SQLAlchemySession
 from signals import onUserLinked, onUserUnlinked
 
@@ -6,7 +6,7 @@ from signals import onUserLinked, onUserUnlinked
 def get_steam_id(user_id):
     db = SQLAlchemySession()
 
-    user = db.query(User).filter_by(user_id=user_id).first()
+    user = db.query(UserTable).filter_by(user_id=user_id).first()
     if user:
         return user.steam_id
     return None
@@ -15,11 +15,11 @@ def get_steam_id(user_id):
 async def link_user(user_id, steam_id):
     db = SQLAlchemySession()
 
-    user = db.query(User).filter_by(user_id=user_id).first()
+    user = db.query(UserTable).filter_by(user_id=user_id).first()
     if user:
         user.steam_id = steam_id
     else:
-        user = User(user_id=user_id, steam_id=steam_id)
+        user = UserTable(user_id=user_id, steam_id=steam_id)
         db.add(user)
 
     await onUserLinked.emit(user.user_id, user.steam_id)
@@ -30,7 +30,7 @@ async def link_user(user_id, steam_id):
 async def unlink_user(user_id):
     db = SQLAlchemySession()
 
-    user = db.query(User).filter_by(user_id=user_id).first()
+    user = db.query(UserTable).filter_by(user_id=user_id).first()
     if user:
         await onUserUnlinked.emit(user.user_id, user.steam_id)
         db.delete(user)
