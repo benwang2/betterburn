@@ -4,7 +4,7 @@ import db.session.utils
 import db.cache.utils
 import bridge
 
-from config import Config as cfg
+from config import Config
 
 from steamboard import SteamLeaderboard
 
@@ -12,7 +12,7 @@ from steamboard import SteamLeaderboard
 class MaidCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.leaderboard = SteamLeaderboard(cfg.app_id, cfg.leaderboard_id)
+        self.leaderboard = SteamLeaderboard(Config.app_id, Config.leaderboard_id)
 
         self.cull.start()
         self.update_cache.start()
@@ -20,12 +20,12 @@ class MaidCog(commands.Cog):
     def cog_unload(self):
         self.cull.cancel()
 
-    @tasks.loop(seconds=cfg.session_duration)
+    @tasks.loop(seconds=Config.session_duration)
     async def cull(self):
         bridge.cull_expired_linked_sessions()
         db.session.utils.cull_expired_sessions()
 
-    @tasks.loop(seconds=cfg.cache_update_interval)
+    @tasks.loop(seconds=Config.cache_update_interval)
     async def update_cache(self):
         self.leaderboard.update()
 

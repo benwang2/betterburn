@@ -6,8 +6,6 @@ from ..database import SQLAlchemySession
 from .models import Session
 from config import Config
 
-cfg = Config()
-
 
 def get_session_by_user(discord_id) -> Session | None:
     db = SQLAlchemySession()
@@ -36,7 +34,7 @@ def create_or_extend_session(discord_id):
 
     if session:
         session.expires_at = dt.now(tz.utc) + datetime.timedelta(
-            minutes=cfg.session_duration
+            minutes=Config.session_duration
         )
     else:
         session = Session(discord_id=discord_id)

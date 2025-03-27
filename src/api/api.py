@@ -21,7 +21,6 @@ from bridge import (
 
 STEAM_OPENID_URL = "https://steamcommunity.com/openid/login"
 
-cfg = Config()
 app = FastAPI()
 
 
@@ -72,4 +71,4 @@ async def auth(sessionId: str, request: Request):
 
 
 def start():
-    uvicorn.run(app, host="0.0.0.0", port=cfg.application_port)
+    uvicorn.run(app, host="0.0.0.0", port=Config.application_port)

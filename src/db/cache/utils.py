@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 
 from ..database import SQLAlchemySession
 from .models import LeaderboardRow, Metadata
+from constants import Rank
 
 
 # Insert example data into the cache table
@@ -55,6 +56,27 @@ def get_score_by_steam_id(steam_id):
         return record.score if record else None
     finally:
         db.close()
+
+
+def get_rank_by_steam_id(steam_id) -> Rank:
+    score = get_score_by_steam_id(steam_id)
+
+    rank: Rank = Rank.Stone
+    if score:
+        if score >= 500 and score < 700:
+            rank = Rank.Bronze
+        elif score >= 700 and score < 800:
+            rank = Rank.Silver
+        elif score >= 800 and score < 1100:
+            rank = Rank.Gold
+        elif score >= 1100 and score < 1300:
+            rank = Rank.Platinum
+        elif score >= 1300 and score < 1500:
+            rank = Rank.Diamond
+        elif score >= 1500:
+            rank = Rank.Master
+
+    return rank
 
 
 def bulk_insert_cache_from_list(leaderboard: list):

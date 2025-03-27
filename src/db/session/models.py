@@ -8,8 +8,6 @@ from uuid import uuid4 as uuid
 
 from config import Config
 
-cfg = Config()
-
 
 class Session(Base):
     __tablename__ = "sessions"
@@ -17,7 +15,7 @@ class Session(Base):
     session_id = Column(VARCHAR(36), default=lambda _: str(uuid()))
     expires_at = Column(
         TIMESTAMP,
-        default=lambda _: dt.now(tz.utc) + datetime.timedelta(cfg.session_duration),
+        default=lambda _: dt.now(tz.utc) + datetime.timedelta(Config.session_duration),
     )
 
     def __str__(self):

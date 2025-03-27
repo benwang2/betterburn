@@ -18,9 +18,7 @@ from .views import LinkView, UnlinkView
 from .cogs.maid import MaidCog
 from .cogs.roles import RoleCog
 
-
-cfg = Config()
-TOKEN = cfg.discord_token
+TOKEN = Config.discord_token
 
 intents = discord.Intents.default()
 client: Bot = Bot(command_prefix="", intents=intents)
@@ -30,7 +28,7 @@ client: Bot = Bot(command_prefix="", intents=intents)
 @client.tree.command(
     name="link",
     description="Link your Discord account to a Steam account.",
-    guilds=[discord.Object(id=guild_id) for guild_id in cfg.test_guild],
+    guilds=[discord.Object(id=guild_id) for guild_id in Config.test_guild],
 )
 async def link(interaction: discord.Interaction):
     discord_id = interaction.user.id
@@ -66,7 +64,7 @@ async def link(interaction: discord.Interaction):
 @client.tree.command(
     name="unlink",
     description="Unlinks any existing steam account.",
-    guilds=[discord.Object(id=guild_id) for guild_id in cfg.test_guild],
+    guilds=[discord.Object(id=guild_id) for guild_id in Config.test_guild],
 )
 async def unlink(interaction: discord.Interaction):
     discord_id = interaction.user.id
@@ -95,7 +93,7 @@ async def unlink(interaction: discord.Interaction):
 @client.tree.command(
     name="verify",
     description="Verify your rank and receive the respective role.",
-    guilds=[discord.Object(id=guild_id) for guild_id in cfg.test_guild],
+    guilds=[discord.Object(id=guild_id) for guild_id in Config.test_guild],
 )
 # @app_commands.describe(score="The score you want to test")
 async def verify(
@@ -143,7 +141,7 @@ async def verify(
         )
 
         if interaction.guild_id == 297229405552377856:
-            ranks_to_remove: list = [key.capitalize() for key in cfg.roles.keys()]
+            ranks_to_remove: list = [key.capitalize() for key in Config.roles.keys()]
             ranks_to_remove.remove(rank)
 
             roles_to_remove = tuple(
@@ -175,7 +173,7 @@ async def verify(
 @client.tree.command(
     name="check",
     description="Check information about a specific member.",
-    guilds=[discord.Object(id=guild_id) for guild_id in cfg.test_guild],
+    guilds=[discord.Object(id=guild_id) for guild_id in Config.test_guild],
 )
 @app_commands.describe(member="The member you want to check")
 async def check(interaction: discord.Interaction, member: discord.Member):
@@ -218,7 +216,7 @@ async def check(interaction: discord.Interaction, member: discord.Member):
 @client.tree.command(
     name="status",
     description="Check the status of the database.",
-    guilds=[discord.Object(id=guild_id) for guild_id in cfg.test_guild],
+    guilds=[discord.Object(id=guild_id) for guild_id in Config.test_guild],
 )
 async def status(interaction: discord.Interaction):
     """Handles the /status command."""
@@ -245,7 +243,7 @@ async def status(interaction: discord.Interaction):
 @client.event
 async def on_ready():
 
-    for guild_id in cfg.test_guild:
+    for guild_id in Config.test_guild:
         try:
             await client.tree.sync(guild=discord.Object(id=guild_id))
         except discord.Forbidden as ex:

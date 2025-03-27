@@ -1,0 +1,4 @@
+[project]
+name = "Betterburn"
+version = "0.1.0"
+description = "Rank verification automation bot"

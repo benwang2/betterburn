@@ -5,9 +5,6 @@ from lxml import etree
 import csv
 from config import Config
 
-cfg = Config()
-
-
 class SteamLeaderboard:
     def __init__(self, app_id, leaderboard_id, api_key=None, mute=True):
         self.__app_id__ = app_id
@@ -131,7 +128,7 @@ class SteamLeaderboard:
         return self.__data__.items()
 
 
-leaderboard = SteamLeaderboard(cfg.app_id, cfg.leaderboard_id, False)
+leaderboard = SteamLeaderboard(Config.app_id, Config.leaderboard_id, False)
 leaderboard.update()
 
 if __name__ == "__main__":
