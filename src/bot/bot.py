@@ -243,6 +243,9 @@ async def status(interaction: discord.Interaction):
 @client.event
 async def on_ready():
 
+    await client.add_cog(MaidCog(client))
+    await client.add_cog(RoleCog(client))
+
     for guild_id in Config.test_guild:
         try:
             await client.tree.sync(guild=discord.Object(id=guild_id))
@@ -254,8 +257,9 @@ async def on_ready():
             print(ex)
         except Exception as ex:
             print(ex)
-    await client.add_cog(MaidCog(client))
-    await client.add_cog(RoleCog(client))
+
+    await client.tree.sync()
+
     print(f"Logged in as {client.user}")
 
 

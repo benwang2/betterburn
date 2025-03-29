@@ -17,7 +17,7 @@ class Config:
     leaderboard_id: str = cfg["leaderboard_id"]
     cache_update_interval: int = cfg["cache_update_interval"]
     session_duration: str = cfg["session_duration"]
-    test_guild: str = cfg["test_guild"]
+    test_guild: list = cfg["test_guild"]
     roles = cfg["roles"]
 
     def __str__(self) -> str:
@@ -25,4 +25,5 @@ class Config:
 
 
 if __name__ == "__main__":
+
     print(cfg)

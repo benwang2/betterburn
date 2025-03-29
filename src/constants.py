@@ -12,6 +12,11 @@ class Rank(Enum):
     Master = 6
 
 
+class RoleDoctorOption(Enum):
+    check = 0
+    test = 1
+
+
 class GuildRoles(TypedDict):
     Stone: int
     Bronze: int
