@@ -1,9 +1,53 @@
+from typing import Union
+
 from .models import UserTable, RoleTable
 from ..database import SQLAlchemySession
+from constants import Rank, GuildRoles
 from signals import onUserLinked, onUserUnlinked
 
 
-def get_steam_id(user_id):
+def get_roles_for_guild(guild_id) -> GuildRoles:
+    db = SQLAlchemySession()
+
+    roles = db.query(RoleTable).filter_by(guild_id=guild_id).all()
+
+    if roles:
+        guild_roles: GuildRoles = {}
+        for role in roles:
+            guild_roles[Rank(role.rank).name] = role.role_id
+        return guild_roles
+
+    return None
+
+
+def get_role_id_for_rank(guild_id: int, rank: Rank) -> Union[int, None]:
+    db = SQLAlchemySession()
+
+    role = db.query(RoleTable).filter_by(guild_id=guild_id, rank=rank.value).first()
+    if role:
+        return role.role_id
+    return None
+
+
+def set_role_id_for_rank(guild_id: int, role_id: int, rank: Rank) -> bool:
+    db = SQLAlchemySession()
+
+    role = db.query(RoleTable).filter_by(guild_id=guild_id, rank=rank.value).first()
+
+    if role:
+        if role.role_id == role_id:
+            return False
+        role.role_id = role_id
+    else:
+        role = RoleTable(guild_id=guild_id, role_id=role_id, rank=rank.value)
+        db.add(role)
+
+    db.commit()
+
+    return True
+
+
+def get_steam_id(user_id) -> Union[int, None]:
     db = SQLAlchemySession()
 
     user = db.query(UserTable).filter_by(user_id=user_id).first()
@@ -42,9 +86,12 @@ async def unlink_user(user_id):
 
 # Example usage
 if __name__ == "__main__":
-    user_id = 76561197995460378  # Replace with the actual user_id
-    steam_id = get_steam_id(user_id)
-    if steam_id:
-        print(f"Steam ID for user {user_id} is {steam_id}")
-    else:
-        print(f"No Steam ID found for user {user_id}")
+    guild_id = 297229405552377856
+    role_dict = get_roles_for_guild(297229405552377856)
+    print(role_dict)
+    # user_id = 76561197995460378  # Replace with the actual user_id
+    # steam_id = get_steam_id(user_id)
+    # if steam_id:
+    #     print(f"Steam ID for user {user_id} is {steam_id}")
+    # else:
+    #     print(f"No Steam ID found for user {user_id}")
