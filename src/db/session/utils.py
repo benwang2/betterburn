@@ -60,16 +60,19 @@ def end_session(session_id):
     db.close()
 
 
-def cull_expired_sessions():
+def cull_expired_sessions() -> int:
     db = SQLAlchemySession()
     now = dt.now(tz.utc)
     expired_sessions = db.query(Session).filter(Session.expires_at < now).all()
+    num_expired_sessions = len(expired_sessions)
 
     for expired_session in expired_sessions:
         db.delete(expired_session)
 
     db.commit()
     db.close()
+
+    return num_expired_sessions
 
 
 def delete_all_sessions():

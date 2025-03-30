@@ -13,10 +13,13 @@ from db.discord.utils import (
 from constants import Rank, RoleDoctorOption
 from config import Config
 
+from custom_logger import CustomLogger as Logger
+
 
 class RoleCog(commands.Cog, name="RoleCog"):
     def __init__(self, bot):
         self.bot = bot
+        self.logger = Logger("rolecog")
 
     async def assign_role(self, member: discord.Member) -> tuple[bool, object]:
         guild_id = member.guild.id
@@ -51,6 +54,11 @@ class RoleCog(commands.Cog, name="RoleCog"):
                 await member.add_roles(
                     discord.utils.get(member.guild.roles, id=role_id)
                 )
+
+            self.logger.info(
+                f'Assigned role <name="{discord.utils.get(member.guild.roles, id=role_id).name}" id={role_id}> for rank {rank.name} to <name="{member.name}" id={member.id}>'
+            )
+
             await member.remove_roles(*roles_to_remove)
             return (True, (rank.name, score))
 

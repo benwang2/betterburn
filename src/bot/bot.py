@@ -17,10 +17,13 @@ from constants import RankColors
 from .cogs.maid import MaidCog
 from .cogs.roles import RoleCog
 
+from custom_logger import CustomLogger as Logger
+
 TOKEN = Config.discord_token
 
 intents = discord.Intents.default()
 client: Bot = Bot(command_prefix="", intents=intents)
+logger = Logger("discord")
 # tree = app_commands.CommandTree(client)
 
 
@@ -44,6 +47,10 @@ async def link(interaction: discord.Interaction):
     async def handler(steam_id):
         try:
             message = await interaction.original_response()
+            logger.info(
+                f'Linked Discord user <name="{interaction.user.name}" id={discord_id}> to SteamID = {steam_id}'
+            )
+
             embed = discord.Embed(
                 title="You have linked your Discord account. Run `/verify` to verify your rank.",
                 description=f"Your account was linked to SteamID: {steam_id}",
@@ -51,7 +58,8 @@ async def link(interaction: discord.Interaction):
             )
             await message.edit(embed=embed, view=None)
         except Exception as e:
-            print(f"Failed to update message: {e}")
+            logger.error(str(e))
+            # print(f"Failed to update message: {e}")
 
     async def event(*args, **kwargs):
         client.loop.create_task(handler(*args, **kwargs))
@@ -80,6 +88,9 @@ async def unlink(interaction: discord.Interaction):
 
         async def unlink_action():
             await unlink_user(discord_id)
+            logger.info(
+                f'Unlinked Discord user <name="{interaction.user.name}" id={discord_id}>'
+            )
 
         view = UnlinkView(unlink_action)
         await interaction.response.send_message(embed=embed, view=view)
@@ -102,7 +113,6 @@ async def unlink(interaction: discord.Interaction):
 async def verify(
     interaction: discord.Interaction,
 ):
-
     embed: discord.Embed = None
 
     if get_steam_id(interaction.user.id) is not None:
@@ -210,21 +220,19 @@ async def status(interaction: discord.Interaction):
 
 @client.event
 async def on_ready():
-
     await client.add_cog(MaidCog(client))
     await client.add_cog(RoleCog(client))
 
     for guild_id in Config.test_guild:
         try:
             await client.tree.sync(guild=discord.Object(id=guild_id))
-        except discord.Forbidden as ex:
+        except discord.Forbidden:
             # Handle forbidden errors (e.g., bot lacks permissions)
-            print(
+            logger.error(
                 f"Discord bot lacks permissions to sync commands to guild_id = {guild_id}"
             )
-            print(ex)
-        except Exception as ex:
-            print(ex)
+        except Exception as e:
+            logger.error(str(e))
 
     await client.tree.sync()
 

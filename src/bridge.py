@@ -47,7 +47,7 @@ def remove_linked_session_by_id(session_id: str):
             break
 
 
-def cull_expired_linked_sessions():
+def cull_expired_linked_sessions() -> int:
     sessions_to_cull = [
         sess
         for sess in sessions
@@ -55,6 +55,7 @@ def cull_expired_linked_sessions():
     ]
     for sess in sessions_to_cull:
         sessions.remove(sess)
+    return len(sessions_to_cull)
 
 
 def set_ext_api_url(api_url: str):
