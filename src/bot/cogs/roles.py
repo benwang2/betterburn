@@ -1,9 +1,8 @@
 import discord
 from discord import app_commands
-from discord.app_commands import Choice
 from discord.ext import commands
 
-from db.cache.utils import get_rank_by_steam_id
+from db.cache.utils import get_rank_from_score, get_score_by_steam_id
 from db.discord.utils import (
     get_role_id_for_rank,
     get_roles_for_guild,
@@ -15,11 +14,11 @@ from constants import Rank, RoleDoctorOption
 from config import Config
 
 
-class RoleCog(commands.Cog):
+class RoleCog(commands.Cog, name="RoleCog"):
     def __init__(self, bot):
         self.bot = bot
 
-    async def assign_role(self, member: discord.Member) -> tuple[bool, str]:
+    async def assign_role(self, member: discord.Member) -> tuple[bool, object]:
         guild_id = member.guild.id
 
         steam_id = get_steam_id(member.id)
@@ -27,7 +26,12 @@ class RoleCog(commands.Cog):
         if steam_id is None:
             return (False, f"No SteamID is linked to DiscordID {member.id}")
 
-        rank = get_rank_by_steam_id(steam_id)
+        score = get_score_by_steam_id(steam_id)
+
+        if score is None:
+            return (False, f"No leaderboard score exists for SteamID {steam_id}")
+
+        rank = get_rank_from_score(score)
 
         if rank is None:
             return (False, f"Couldn't find rank for SteamID {steam_id}")
@@ -48,7 +52,7 @@ class RoleCog(commands.Cog):
                     discord.utils.get(member.guild.roles, id=role_id)
                 )
             await member.remove_roles(*roles_to_remove)
-            return (True, rank.name)
+            return (True, (rank.name, score))
 
         return (False, f"No role is assigned to rank {rank.name}")
 

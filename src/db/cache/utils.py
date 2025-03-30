@@ -58,9 +58,7 @@ def get_score_by_steam_id(steam_id):
         db.close()
 
 
-def get_rank_by_steam_id(steam_id) -> Rank:
-    score = get_score_by_steam_id(steam_id)
-
+def get_rank_from_score(score) -> Rank:
     rank: Rank = Rank.Stone
     if score:
         if score >= 500 and score < 700:

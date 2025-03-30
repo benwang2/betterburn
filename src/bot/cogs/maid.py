@@ -9,7 +9,7 @@ from config import Config
 from steamboard import SteamLeaderboard
 
 
-class MaidCog(commands.Cog):
+class MaidCog(commands.Cog, name="MaidCog"):
     def __init__(self, bot):
         self.bot = bot
         self.leaderboard = SteamLeaderboard(Config.app_id, Config.leaderboard_id)

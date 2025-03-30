@@ -5,15 +5,14 @@ from discord.ext.commands import Bot
 from discord import app_commands
 from api.utils import generate_link_url
 
-import db.cache
-import db.cache.utils
-import db.discord.utils
-import db.cache.utils
+from db.cache.utils import get_score_by_steam_id, last_updated_at, get_player_count
+from db.discord.utils import get_steam_id, unlink_user
 from db.session.utils import create_or_extend_session, end_session
 
 from bridge import create_linked_session
 
 from .views import LinkView, UnlinkView
+from constants import RankColors
 
 from .cogs.maid import MaidCog
 from .cogs.roles import RoleCog
@@ -72,14 +71,18 @@ async def unlink(interaction: discord.Interaction):
     embed: discord.Embed = None
     view: discord.ui.View = None
 
-    if db.discord.utils.get_steam_id(discord_id) != None:
+    if get_steam_id(discord_id) is not None:
         embed = discord.Embed(
             title="Unlink Steam account.",
             description="Click the 'Confirm' button below to unlink your account.",
             color=discord.Color.blurple(),
         )
-        unlink_user = lambda: db.discord.utils.unlink_user(discord_id)
-        view = UnlinkView(unlink_user)
+
+        async def unlink_action():
+            await unlink_user(discord_id)
+
+        view = UnlinkView(unlink_action)
+        await interaction.response.send_message(embed=embed, view=view)
     else:
         embed = discord.Embed(
             title="Unlink Steam account.",
@@ -87,7 +90,7 @@ async def unlink(interaction: discord.Interaction):
             color=discord.Color.red(),
         )
 
-    await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+        await interaction.response.send_message(embed=embed)
 
 
 @client.tree.command(
@@ -98,67 +101,33 @@ async def unlink(interaction: discord.Interaction):
 # @app_commands.describe(score="The score you want to test")
 async def verify(
     interaction: discord.Interaction,
-    score: discord.app_commands.Range[int, 0, 1600] = None,
 ):
-    discord_id = interaction.user.id
 
     embed: discord.Embed = None
-    view: discord.ui.View = None
 
-    if (steam_id := db.discord.utils.get_steam_id(discord_id)) != None:
-        score = db.cache.utils.get_score_by_steam_id(steam_id)
-        rank: str = "Stone"
+    if get_steam_id(interaction.user.id) is not None:
+        role_cog: RoleCog = client.get_cog("RoleCog")
+        (succ, message) = await role_cog.assign_role(interaction.user)
+        if succ:
+            (rank, score) = message
+            file = discord.File(
+                f"./src/img/{rank.lower()}.png", filename=f"{rank.lower()}.png"
+            )
+            embed = discord.Embed(
+                title="Your rank has been verified.",
+                description=f"{rank} - {score}",
+                color=RankColors[rank].value,
+            )
+            embed.set_image(url=f"attachment://{rank.lower()}.png")
 
-        if score < 500:
-            rank = "Stone"
-            color = discord.Color.dark_gray()
-        elif score >= 500 and score < 700:
-            rank = "Bronze"
-            color = discord.Color.dark_orange()
-        elif score >= 700 and score < 800:
-            rank = "Silver"
-            color = discord.Color.light_gray()
-        elif score >= 800 and score < 1100:
-            rank = "Gold"
-            color = discord.Color.gold()
-        elif score >= 1100 and score < 1300:
-            rank = "Platinum"
-            color = discord.Color.lighter_gray()
-        elif score >= 1300 and score < 1500:
-            rank = "Diamond"
-            color = discord.Color.blue()
-        elif score >= 1500:
-            rank = "Master"
-            color = discord.Color.brand_green()
-
-        file = discord.File(
-            f"./src/img/{rank.lower()}.png", filename=f"{rank.lower()}.png"
-        )
-        embed = discord.Embed(
-            title="Your rank has been verified.",
-            description=f"{rank} - {score}",
-            color=color,
-        )
-
-        ranks_to_remove: list = [key.capitalize() for key in cfg.roles.keys()]
-        ranks_to_remove.remove(rank)
-
-        roles_to_remove = tuple(
-            discord.utils.get(interaction.guild.roles, name=name)
-            for name in tuple(ranks_to_remove)
-        )
-        role = discord.utils.get(interaction.guild.roles, name=rank)
-
-        owned_roles = [role.name for role in interaction.user.roles]
-        if rank not in owned_roles:
-            await interaction.user.remove_roles(*roles_to_remove)
-            await interaction.user.add_roles(role)
-
-        embed.set_image(url=f"attachment://{rank.lower()}.png")
-
-        await interaction.response.send_message(
-            embed=embed, file=file, view=view, ephemeral=True
-        )
+            await interaction.response.send_message(embed=embed, file=file)
+        else:
+            embed = discord.Embed(
+                title="An error occurred.",
+                description=message,
+                color=discord.Color.red(),
+            )
+            await interaction.response.send_message(embed=embed)
     else:
         embed = discord.Embed(
             title="Link a Steam account.",
@@ -166,7 +135,7 @@ async def verify(
             color=discord.Color.red(),
         )
 
-        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+        await interaction.response.send_message(embed=embed)
 
 
 @client.tree.command(
@@ -199,12 +168,12 @@ async def check(interaction: discord.Interaction, member: discord.Member):
         inline=False,
     )
 
-    member_steam_id = db.discord.utils.get_steam_id(member.id)
+    member_steam_id = get_steam_id(member.id)
 
     if member_steam_id is not None:
         embed.add_field(
             name="ELO",
-            value=db.cache.utils.get_score_by_steam_id(member_steam_id),
+            value=get_score_by_steam_id(member_steam_id),
             inline=False,
         )
     embed.set_thumbnail(url=member.display_avatar.url)
@@ -225,11 +194,11 @@ async def status(interaction: discord.Interaction):
         color=discord.Color.green(),
     )
 
-    last_updated = db.cache.utils.last_updated_at()
+    last_updated = last_updated_at()
     last_updated_ut = f"<t:{int(last_updated.timestamp())}:F>"
     embed.add_field(name="Last updated", value=last_updated_ut, inline=False)
 
-    player_count = db.cache.utils.get_player_count()
+    player_count = get_player_count()
     embed.add_field(
         name="Number of Players",
         value=player_count,

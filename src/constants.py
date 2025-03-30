@@ -1,5 +1,6 @@
 from enum import Enum
 from typing import TypedDict
+import discord
 
 
 class Rank(Enum):
@@ -10,6 +11,16 @@ class Rank(Enum):
     Platinum = 4
     Diamond = 5
     Master = 6
+
+
+class RankColors(Enum):
+    Stone = discord.Color.dark_gray()
+    Bronze = discord.Color.dark_orange()
+    Silver = discord.Color.light_gray()
+    Gold = discord.Color.gold()
+    Platinum = discord.Color.lighter_gray()
+    Diamond = discord.Color.blue()
+    Master = discord.Color.brand_green()
 
 
 class RoleDoctorOption(Enum):
