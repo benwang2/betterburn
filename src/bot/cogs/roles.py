@@ -65,7 +65,7 @@ class RoleCog(commands.Cog, name="RoleCog"):
         return (False, f"No role is assigned to rank {rank.name}")
 
     @app_commands.command(name="roledoctor", description="Diagnose roles.")
-    @app_commands.default_permissions(manage_roles=True)
+    @app_commands.default_permissions(administrator=True)
     @app_commands.describe(option="Doctor option to run.")
     @app_commands.guilds(
         *[discord.Object(id=guild_id) for guild_id in Config.test_guild]
@@ -90,7 +90,7 @@ class RoleCog(commands.Cog, name="RoleCog"):
         name="config",
         description="Configure roles for your server.",
     )
-    @app_commands.default_permissions(manage_roles=True)
+    @app_commands.default_permissions(administrator=True)
     @app_commands.describe(rank="Rank to pair to role.", role="Role to pair to rank.")
     @app_commands.guilds(
         *[discord.Object(id=guild_id) for guild_id in Config.test_guild]

@@ -141,7 +141,7 @@ async def verify(
     else:
         embed = discord.Embed(
             title="Link a Steam account.",
-            description="Your Discord account is not linked to a Steam account.",
+            description="Your Discord account is not linked to a Steam account. Run the `/link` command to link your steam account.",
             color=discord.Color.red(),
         )
 
@@ -154,6 +154,7 @@ async def verify(
     guilds=[discord.Object(id=guild_id) for guild_id in Config.test_guild],
 )
 @app_commands.describe(member="The member you want to check")
+@app_commands.default_permissions(administrator=True)
 async def check(interaction: discord.Interaction, member: discord.Member):
     """Handles the /check command."""
     embed = discord.Embed(
