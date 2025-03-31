@@ -56,10 +56,10 @@ async def link(interaction: discord.Interaction):
                 description=f"Your account was linked to SteamID: {steam_id}",
                 color=discord.Color.green(),
             )
+
             await message.edit(embed=embed, view=None)
         except Exception as e:
             logger.error(str(e))
-            # print(f"Failed to update message: {e}")
 
     async def event(*args, **kwargs):
         client.loop.create_task(handler(*args, **kwargs))
@@ -74,6 +74,7 @@ async def link(interaction: discord.Interaction):
     guilds=[discord.Object(id=guild_id) for guild_id in Config.test_guild],
 )
 async def unlink(interaction: discord.Interaction):
+    await interaction.response.defer()
     discord_id = interaction.user.id
 
     embed: discord.Embed = None
@@ -93,7 +94,7 @@ async def unlink(interaction: discord.Interaction):
             )
 
         view = UnlinkView(unlink_action)
-        await interaction.response.send_message(embed=embed, view=view)
+        await interaction.followup.send(embed=embed, view=view)
     else:
         embed = discord.Embed(
             title="Unlink Steam account.",
@@ -101,7 +102,7 @@ async def unlink(interaction: discord.Interaction):
             color=discord.Color.red(),
         )
 
-        await interaction.response.send_message(embed=embed)
+        await interaction.followup.send(embed=embed)
 
 
 @client.tree.command(
@@ -113,6 +114,7 @@ async def unlink(interaction: discord.Interaction):
 async def verify(
     interaction: discord.Interaction,
 ):
+    await interaction.response.defer(thinking=False)
     embed: discord.Embed = None
 
     if get_steam_id(interaction.user.id) is not None:
@@ -125,19 +127,26 @@ async def verify(
             )
             embed = discord.Embed(
                 title="Your rank has been verified.",
-                description=f"{rank} - {score}",
+                description=f"**{rank}** - `{score}`",
                 color=RankColors[rank].value,
             )
             embed.set_image(url=f"attachment://{rank.lower()}.png")
 
-            await interaction.response.send_message(embed=embed, file=file)
+            last_updated = last_updated_at()
+            if last_updated is not None:
+                last_updated_text = f"<t:{int(last_updated)}:R>"
+                embed.add_field(
+                    name="Database last updated", value=last_updated_text, inline=False
+                )
+
+            await interaction.followup.send(embed=embed, file=file)
         else:
             embed = discord.Embed(
                 title="An error occurred.",
                 description=message,
                 color=discord.Color.red(),
             )
-            await interaction.response.send_message(embed=embed)
+            await interaction.followup.send(embed=embed)
     else:
         embed = discord.Embed(
             title="Link a Steam account.",
@@ -145,7 +154,7 @@ async def verify(
             color=discord.Color.red(),
         )
 
-        await interaction.response.send_message(embed=embed)
+        await interaction.followup.send(embed=embed)
 
 
 @client.tree.command(
@@ -206,8 +215,9 @@ async def status(interaction: discord.Interaction):
     )
 
     last_updated = last_updated_at()
-    last_updated_ut = f"<t:{int(last_updated.timestamp())}:F>"
-    embed.add_field(name="Last updated", value=last_updated_ut, inline=False)
+    if last_updated is not None:
+        last_updated_text = f"<t:{int(last_updated)}:R>"
+        embed.add_field(name="Last updated", value=last_updated_text, inline=False)
 
     player_count = get_player_count()
     embed.add_field(

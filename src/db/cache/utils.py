@@ -39,11 +39,12 @@ def update_metadata(num_rows):
     db = SQLAlchemySession()
 
     try:
-        timestamp = datetime.now(timezone.utc)
+        timestamp = datetime.now(timezone.utc).timestamp()
 
         db.query(Metadata).delete()
         metadata_entry = Metadata(updated=timestamp, player_count=num_rows)
         db.add(metadata_entry)
+        db.commit()
     finally:
         db.close()
 
@@ -169,8 +170,9 @@ def clear_cache_table():
 def last_updated_at():
     db = SQLAlchemySession()
     try:
-        metadata = db.query(Metadata).order_by(Metadata.timestamp.desc()).first()
-        return metadata.timestamp if metadata else None
+        metadata = db.query(Metadata).order_by(Metadata.updated.desc()).first()
+        print(metadata)
+        return metadata.updated if metadata else None
     finally:
         db.close()
 
@@ -178,7 +180,7 @@ def last_updated_at():
 def get_player_count():
     db = SQLAlchemySession()
     try:
-        metadata = db.query(Metadata).order_by(Metadata.timestamp.desc()).first()
+        metadata = db.query(Metadata).order_by(Metadata.player_count.desc()).first()
         return metadata.player_count if metadata else None
     finally:
         db.close()

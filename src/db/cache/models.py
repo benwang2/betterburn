@@ -1,6 +1,5 @@
-from sqlalchemy import Column, BigInteger, Integer, TIMESTAMP
+from sqlalchemy import Column, BigInteger, Integer
 from ..base import Base
-from datetime import datetime
 
 
 # Cache table
@@ -14,5 +13,5 @@ class LeaderboardRow(Base):
 # Metadata table
 class Metadata(Base):
     __tablename__ = "metadata"
-    updated = Column(TIMESTAMP, primary_key=True, default=datetime.utcnow)
+    updated = Column(BigInteger, primary_key=True)
     player_count = Column(Integer, nullable=False)
