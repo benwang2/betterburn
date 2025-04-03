@@ -49,31 +49,34 @@ def update_metadata(num_rows):
         db.close()
 
 
-# Get score by Steam ID
-def get_score_by_steam_id(steam_id):
+def get_rank_data_by_steam_id(steam_id):
     db = SQLAlchemySession()
     try:
         record = db.query(LeaderboardRow).filter_by(steam_id=steam_id).first()
-        return record.score if record else None
+        return record if record else None
     finally:
         db.close()
 
 
-def get_rank_from_score(score) -> Rank:
+def get_rank_from_row(row: LeaderboardRow) -> Rank:
     rank: Rank = Rank.Stone
-    if score:
-        if score >= 500 and score < 700:
+    if row:
+        if row.score >= 500 and row.score < 700:
             rank = Rank.Bronze
-        elif score >= 700 and score < 800:
+        elif row.score >= 700 and row.score < 800:
             rank = Rank.Silver
-        elif score >= 800 and score < 1100:
+        elif row.score >= 800 and row.score < 1100:
             rank = Rank.Gold
-        elif score >= 1100 and score < 1300:
+        elif row.score >= 1100 and row.score < 1300:
             rank = Rank.Platinum
-        elif score >= 1300 and score < 1500:
+        elif row.score >= 1300 and row.score < 1500:
             rank = Rank.Diamond
-        elif score >= 1500:
+        elif row.score >= 1500 and row.score < 1700:
             rank = Rank.Master
+        elif row.score >= 1700:
+            rank = Rank.Grandmaster
+            if row.score >= 1800 and row.rank <= 100:
+                rank = Rank.Aetherean
 
     return rank
 

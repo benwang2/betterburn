@@ -11,6 +11,8 @@ class Rank(Enum):
     Platinum = 4
     Diamond = 5
     Master = 6
+    Grandmaster = 7
+    Aetherean = 8
 
 
 class RankColors(Enum):
@@ -21,6 +23,8 @@ class RankColors(Enum):
     Platinum = discord.Color.lighter_gray()
     Diamond = discord.Color.blue()
     Master = discord.Color.brand_green()
+    Grandmaster = discord.Color.red()
+    Aetherean = discord.Color.purple()
 
 
 class RoleDoctorOption(Enum):
@@ -36,3 +40,5 @@ class GuildRoles(TypedDict):
     Platinum: int
     Diamond: int
     Master: int
+    Grandmaster: int
+    Aetherean: int

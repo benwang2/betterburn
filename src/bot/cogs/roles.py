@@ -2,7 +2,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-from db.cache.utils import get_rank_from_score, get_score_by_steam_id
+from db.cache.utils import get_rank_data_by_steam_id, get_rank_from_row
 from db.discord.utils import (
     get_role_id_for_rank,
     get_roles_for_guild,
@@ -29,16 +29,12 @@ class RoleCog(commands.Cog, name="RoleCog"):
         if steam_id is None:
             return (False, f"No SteamID is linked to DiscordID {member.id}")
 
-        score = get_score_by_steam_id(steam_id)
+        rank_data = get_rank_data_by_steam_id(steam_id)
 
-        if score is None:
-            return (False, f"No leaderboard score exists for SteamID {steam_id}")
-
-        rank = get_rank_from_score(score)
-
-        if rank is None:
+        if rank_data is None:
             return (False, f"Couldn't find rank for SteamID {steam_id}")
 
+        rank = get_rank_from_row(rank_data)
         role_id = get_role_id_for_rank(guild_id, rank)
 
         if role_id:
@@ -60,7 +56,7 @@ class RoleCog(commands.Cog, name="RoleCog"):
             )
 
             await member.remove_roles(*roles_to_remove)
-            return (True, (rank.name, score))
+            return (True, (rank.name, rank_data.score))
 
         return (False, f"No role is assigned to rank {rank.name}")
 

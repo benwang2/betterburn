@@ -5,7 +5,12 @@ from discord.ext.commands import Bot
 from discord import app_commands
 from api.utils import generate_link_url
 
-from db.cache.utils import get_score_by_steam_id, last_updated_at, get_player_count
+from db.cache.utils import (
+    last_updated_at,
+    get_player_count,
+    get_rank_data_by_steam_id,
+    get_rank_from_row,
+)
 from db.discord.utils import get_steam_id, unlink_user
 from db.session.utils import create_or_extend_session, end_session
 
@@ -163,7 +168,7 @@ async def verify(
     guilds=[discord.Object(id=guild_id) for guild_id in Config.test_guild],
 )
 @app_commands.describe(member="The member you want to check")
-@app_commands.default_permissions(administrator=True)
+@app_commands.check(lambda interaction: interaction.user.id == 154046172254830592)
 async def check(interaction: discord.Interaction, member: discord.Member):
     """Handles the /check command."""
     embed = discord.Embed(
@@ -189,13 +194,20 @@ async def check(interaction: discord.Interaction, member: discord.Member):
     )
 
     member_steam_id = get_steam_id(member.id)
+    ranked_data = None
 
     if member_steam_id is not None:
+        ranked_data = get_rank_data_by_steam_id(member_steam_id)
+
+    if ranked_data is not None:
+        rank = get_rank_from_row(ranked_data)
         embed.add_field(
             name="ELO",
-            value=get_score_by_steam_id(member_steam_id),
+            value=ranked_data.score,
             inline=False,
         )
+        embed.color = RankColors[rank.name].value
+
     embed.set_thumbnail(url=member.display_avatar.url)
 
     await interaction.response.send_message(embed=embed, ephemeral=True)
