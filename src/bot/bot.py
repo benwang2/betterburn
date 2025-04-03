@@ -74,7 +74,7 @@ async def link(interaction: discord.Interaction):
     guilds=[discord.Object(id=guild_id) for guild_id in Config.test_guild],
 )
 async def unlink(interaction: discord.Interaction):
-    await interaction.response.defer()
+    await interaction.response.defer(ephemeral=True)
     discord_id = interaction.user.id
 
     embed: discord.Embed = None
