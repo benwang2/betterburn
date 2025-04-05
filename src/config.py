@@ -18,12 +18,10 @@ class Config:
     cache_update_interval: int = cfg["cache_update_interval"]
     session_duration: str = cfg["session_duration"]
     test_guild: list = cfg["test_guild"]
-    roles = cfg["roles"]
 
     def __str__(self) -> str:
         return f'<api_url="{self.api_url}" app_id={self.app_id} leaderboard_id={self.leaderboard_id} session_duration={self.session_duration}>'
 
 
 if __name__ == "__main__":
-
     print(cfg)

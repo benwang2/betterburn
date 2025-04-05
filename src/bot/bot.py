@@ -11,13 +11,12 @@ from db.cache.utils import (
     get_rank_data_by_steam_id,
     get_rank_from_row,
 )
-from db.discord.utils import get_steam_id, unlink_user
+from db.discord.utils import get_steam_id, unlink_user, get_role_id_for_rank
 from db.session.utils import create_or_extend_session, end_session
 
 from bridge import create_linked_session
 
 from .views import LinkView, UnlinkView
-from constants import RankColors
 
 from .cogs.maid import MaidCog
 from .cogs.roles import RoleCog
@@ -126,14 +125,15 @@ async def verify(
         role_cog: RoleCog = client.get_cog("RoleCog")
         (succ, message) = await role_cog.assign_role(interaction.user)
         if succ:
-            (rank, score) = message
+            (rank, score, role_id) = message
+            role: discord.Role = discord.utils.get(interaction.guild.roles, id=role_id)
             file = discord.File(
                 f"./src/img/{rank.lower()}.png", filename=f"{rank.lower()}.png"
             )
             embed = discord.Embed(
                 title="Your rank has been verified.",
                 description=f"**{rank}** - `{score}`",
-                color=RankColors[rank].value,
+                color=role.color,
             )
             embed.set_image(url=f"attachment://{rank.lower()}.png")
 
@@ -201,12 +201,15 @@ async def check(interaction: discord.Interaction, member: discord.Member):
 
     if ranked_data is not None:
         rank = get_rank_from_row(ranked_data)
+        role: discord.Role = discord.utils.get(
+            member.guild.roles, id=get_role_id_for_rank(member.guild.id, rank)
+        )
         embed.add_field(
             name="ELO",
             value=ranked_data.score,
             inline=False,
         )
-        embed.color = RankColors[rank.name].value
+        embed.color = role.color
 
     embed.set_thumbnail(url=member.display_avatar.url)
 

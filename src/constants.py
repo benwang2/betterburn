@@ -15,18 +15,6 @@ class Rank(Enum):
     Aetherean = 8
 
 
-class RankColors(Enum):
-    Stone = discord.Color.dark_gray()
-    Bronze = discord.Color.dark_orange()
-    Silver = discord.Color.light_gray()
-    Gold = discord.Color.gold()
-    Platinum = discord.Color.lighter_gray()
-    Diamond = discord.Color.blue()
-    Master = discord.Color.brand_green()
-    Grandmaster = discord.Color.red()
-    Aetherean = discord.Color.purple()
-
-
 class RoleDoctorOption(Enum):
     check = 0
     test = 1

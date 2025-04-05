@@ -56,7 +56,7 @@ class RoleCog(commands.Cog, name="RoleCog"):
             )
 
             await member.remove_roles(*roles_to_remove)
-            return (True, (rank.name, rank_data.score))
+            return (True, (rank.name, rank_data.score, role_id))
 
         return (False, f"No role is assigned to rank {rank.name}")
 
