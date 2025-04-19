@@ -47,7 +47,7 @@ class SteamLeaderboard:
         numRequests = 0
         url = f"https://steamcommunity.com/stats/{self.__app_id__}/leaderboards/{self.__leaderboard_id__}?xml=1&start={start}"
         xml, data, personas = [[], []], odict(), {}
-        if limit != None:
+        if limit is not None:
             url += "&end=" + str(start + (limit - 1))
         try:
             t_start = time.time()
@@ -68,7 +68,7 @@ class SteamLeaderboard:
                             + str(time.time() - t_start2)
                             + " seconds."
                         )
-                    if limit == None or limit >= 5000:
+                    if limit is None or limit >= 5000:
                         nextURL = root.xpath("/response/nextRequestURL")
                         if len(nextURL) == 0 or nextURL[0].text == url:
                             break

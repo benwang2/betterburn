@@ -77,7 +77,7 @@ class RoleCog(commands.Cog, name="RoleCog"):
                 if roles[rank.name]:
                     embed.add_field(name=rank.name, value=f"<@&{roles[rank.name]}>")
                 else:
-                    embed.add_field(name=rank.name, value=f"Unmapped")
+                    embed.add_field(name=rank.name, value="Unmapped")
             await interaction.followup.send(embed=embed)
         elif option == RoleDoctorOption.test:
             pass

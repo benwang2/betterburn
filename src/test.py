@@ -11,10 +11,14 @@ def test_cache():
     # with open("./data.csv","r")
     t_start = perf_counter_ns()
     clear_cache_table()
-    print(f"Took {(perf_counter_ns()-t_start)/1_000_000_000}s to clear cache table.")
+    print(
+        f"Took {(perf_counter_ns() - t_start) / 1_000_000_000}s to clear cache table."
+    )
     t_start = perf_counter_ns()
     bulk_insert_cache_from_file("./data.csv")
-    print(f"Took {(perf_counter_ns()-t_start)/1_000_000_000}s to refresh cache table.")
+    print(
+        f"Took {(perf_counter_ns() - t_start) / 1_000_000_000}s to refresh cache table."
+    )
     # query_example_data()
 
 
