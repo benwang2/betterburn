@@ -63,9 +63,9 @@ def get_rank_from_row(row: LeaderboardRow) -> Rank:
     if row:
         if row.score >= 500 and row.score < 700:
             rank = Rank.Bronze
-        elif row.score >= 700 and row.score < 800:
+        elif row.score >= 700 and row.score < 900:
             rank = Rank.Silver
-        elif row.score >= 800 and row.score < 1100:
+        elif row.score >= 900 and row.score < 1100:
             rank = Rank.Gold
         elif row.score >= 1100 and row.score < 1300:
             rank = Rank.Platinum

@@ -125,14 +125,14 @@ async def verify(
         role_cog: RoleCog = client.get_cog("RoleCog")
         (succ, message) = await role_cog.assign_role(interaction.user)
         if succ:
-            (rank, score, role_id) = message
+            (rank, rank_num, score, role_id) = message
             role: discord.Role = discord.utils.get(interaction.guild.roles, id=role_id)
             file = discord.File(
                 f"./src/img/{rank.lower()}.png", filename=f"{rank.lower()}.png"
             )
             embed = discord.Embed(
                 title="Your rank has been verified.",
-                description=f"**{rank}** - `{score}`",
+                description=f"**{rank}** - `{score}` - #{rank_num}",
                 color=role.color,
             )
             embed.set_image(url=f"attachment://{rank.lower()}.png")
@@ -246,6 +246,17 @@ async def status(interaction: discord.Interaction):
 
 @client.event
 async def on_ready():
+    guilds = [guild.id for guild in client.guilds]
+
+    for guild_id in guilds:
+        if guild_id not in Config.test_guild:
+            server = client.get_guild(guild_id)
+            client_mbr = server.get_member(client.user.id)
+            logger.info(
+                f"Betterburn joined <name={server.name} id={guild_id}> on {client_mbr.joined_at}"
+            )
+            await server.leave()
+
     await client.add_cog(MaidCog(client))
     await client.add_cog(RoleCog(client))
 
