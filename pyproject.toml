@@ -5,6 +5,9 @@ description = "Rank verification automation bot"
 dependencies = [
     "discord-py>=2.5.2",
     "fastapi>=0.115.12",
+    "indexed>=1.3.0",
+    "lxml>=5.4.0",
+    "requests>=2.32.4",
     "sqlalchemy>=2.0.41",
     "steamsignin>=1.1.1",
     "uvicorn>=0.34.3",
@@ -17,3 +20,4 @@ dev = [
 
 [tool.ruff]
 line-length = 120
+fix=true
