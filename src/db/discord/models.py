@@ -1,5 +1,4 @@
 from sqlalchemy import BigInteger, Column, ForeignKey, SmallInteger
-from sqlalchemy.orm import relationship
 
 from ..base import Base
 
@@ -21,5 +20,3 @@ class MembershipTable(Base):
     __tablename__ = "membership"
     user_id = Column(BigInteger, ForeignKey(UserTable.user_id), primary_key=True, nullable=False)
     guild_id = Column(BigInteger, nullable=False)
-
-    user = relationship("User", foreign_keys="Membership.user_id")
