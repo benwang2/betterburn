@@ -2,7 +2,7 @@ from tomllib import load
 
 
 def load_cfg() -> dict:
-    with open("./config.toml", "r") as f:
+    with open("./config.toml", "rb") as f:
         return load(f)
 
 
