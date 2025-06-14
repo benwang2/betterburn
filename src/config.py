@@ -1,4 +1,4 @@
-from toml import load
+from tomllib import load
 
 
 def load_cfg() -> dict:
