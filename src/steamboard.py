@@ -5,8 +5,8 @@ import requests
 from indexed import IndexedOrderedDict as odict
 from lxml import etree
 
-from config import Config
-from custom_logger import CustomLogger as Logger
+from .config import Config
+from .custom_logger import CustomLogger as Logger
 
 
 class SteamLeaderboard:

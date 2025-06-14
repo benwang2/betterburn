@@ -2,6 +2,7 @@ import asyncio
 import sys
 import threading
 import traceback
+from logging import Logger
 
 from .api.api import start as start_fastapi
 from .bot.bot import start_bot

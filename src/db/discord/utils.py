@@ -1,8 +1,7 @@
 from typing import Union
 
-from constants import GuildRoles, Rank
-from signals import onUserLinked, onUserUnlinked
-
+from ...constants import GuildRoles, Rank
+from ...signals import onUserLinked, onUserUnlinked
 from ..database import SQLAlchemySession
 from .models import MembershipTable, RoleTable, UserTable
 

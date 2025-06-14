@@ -2,10 +2,9 @@ import discord
 from discord import app_commands
 from discord.ext.commands import Bot
 
-from api.utils import generate_link_url
-from bridge import create_linked_session
-from config import Config
-
+from ..api.utils import generate_link_url
+from ..bridge import create_linked_session
+from ..config import Config
 from ..custom_logger import CustomLogger as Logger
 from ..db.cache.utils import (
     get_player_count,

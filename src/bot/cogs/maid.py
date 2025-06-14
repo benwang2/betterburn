@@ -1,12 +1,11 @@
 from discord.ext import commands, tasks
 
-from steamboard import SteamLeaderboard
-
 from ... import bridge
 from ...config import Config
 from ...custom_logger import CustomLogger as Logger
 from ...db.cache import utils as cache_utils
 from ...db.session import utils as session_utils
+from ...steamboard import SteamLeaderboard
 
 
 class MaidCog(commands.Cog, name="MaidCog"):

@@ -5,13 +5,12 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from pysteamsignin.steamsignin import SteamSignIn
 
-from bridge import (
+from ..bridge import (
     find_linked_session,
     get_ext_api_url,
     remove_linked_session_by_id,
 )
-from config import Config
-
+from ..config import Config
 from ..db.discord.utils import link_user
 from ..db.session.utils import end_session, get_session, is_valid_session
 

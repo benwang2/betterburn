@@ -2,17 +2,16 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-from db.cache.utils import get_rank_data_by_steam_id, get_rank_from_row
-from db.discord.utils import (
+from ...config import Config
+from ...constants import Rank, RoleDoctorOption
+from ...custom_logger import CustomLogger as Logger
+from ...db.cache.utils import get_rank_data_by_steam_id, get_rank_from_row
+from ...db.discord.utils import (
     get_role_id_for_rank,
     get_roles_for_guild,
     get_steam_id,
     set_role_id_for_rank,
 )
-
-from ...config import Config
-from ...constants import Rank, RoleDoctorOption
-from ...custom_logger import CustomLogger as Logger
 
 
 class RoleCog(commands.Cog, name="RoleCog"):
