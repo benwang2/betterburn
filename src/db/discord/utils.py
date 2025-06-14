@@ -1,6 +1,6 @@
 from typing import Union
 
-from .models import UserTable, RoleTable
+from .models import UserTable, RoleTable, MembershipTable
 from ..database import SQLAlchemySession
 from constants import Rank, GuildRoles
 from signals import onUserLinked, onUserUnlinked
@@ -54,6 +54,13 @@ def get_steam_id(user_id) -> Union[int, None]:
     if user:
         return user.steam_id
     return None
+
+
+def get_guild_ids_for_user(user_id) -> Union[list[int], None]:
+    db = SQLAlchemySession()
+
+    memberships = db.query(MembershipTable).filter_by(user_id=user_id).all()
+    return [membership.guild_id for membership in memberships]
 
 
 async def link_user(user_id, steam_id):
