@@ -1,9 +1,9 @@
 import csv
 from datetime import datetime, timezone
 
+from ...constants import Rank
 from ..database import SQLAlchemySession
 from .models import LeaderboardRow, Metadata
-from constants import Rank
 
 
 # Insert example data into the cache table
@@ -27,9 +27,7 @@ def _query_example_data():
         cache_data = db.query(LeaderboardRow).all()
         print("Cache Table:")
         for entry in cache_data[:10]:
-            print(
-                f"Steam ID: {entry.steam_id}, Score: {entry.score}, Rank: {entry.rank}"
-            )
+            print(f"Steam ID: {entry.steam_id}, Score: {entry.score}, Rank: {entry.rank}")
         print("...")
     finally:
         db.close()
@@ -139,9 +137,7 @@ def bulk_insert_cache_from_file(file_path):
                 score = int(row.get("score"))
                 rank = int(row.get("rank"))
                 # print(steam_id, score, rank)
-                records.append(
-                    LeaderboardRow(steam_id=steam_id, score=score, rank=rank)
-                )
+                records.append(LeaderboardRow(steam_id=steam_id, score=score, rank=rank))
 
         # Bulk insert using SQLAlchemy
 

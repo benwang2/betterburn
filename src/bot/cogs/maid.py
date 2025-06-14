@@ -1,14 +1,12 @@
-from discord.ext import tasks, commands
-
-import db.session.utils
-import db.cache.utils
-import bridge
-
-from config import Config
+from discord.ext import commands, tasks
 
 from steamboard import SteamLeaderboard
 
-from custom_logger import CustomLogger as Logger
+from ... import bridge
+from ...config import Config
+from ...custom_logger import CustomLogger as Logger
+from ...db.cache import utils as cache_utils
+from ...db.session import utils as session_utils
 
 
 class MaidCog(commands.Cog, name="MaidCog"):
@@ -26,7 +24,7 @@ class MaidCog(commands.Cog, name="MaidCog"):
     @tasks.loop(seconds=Config.session_duration)
     async def cull(self):
         culled_linking_sessions = bridge.cull_expired_linked_sessions()
-        culled_sessions = db.session.utils.cull_expired_sessions()
+        culled_sessions = session_utils.cull_expired_sessions()
         self.logger.info(f"Culled {culled_linking_sessions} linked sessions.")
         self.logger.info(f"Culled {culled_sessions} sessions.")
 
@@ -34,8 +32,8 @@ class MaidCog(commands.Cog, name="MaidCog"):
     async def update_cache(self):
         self.leaderboard.update()
 
-        db.cache.utils.clear_cache_table()
-        db.cache.utils.bulk_insert_cache_from_list(self.leaderboard.to_list())
-        db.cache.utils.update_metadata(len(self.leaderboard))
+        cache_utils.clear_cache_table()
+        cache_utils.bulk_insert_cache_from_list(self.leaderboard.to_list())
+        cache_utils.update_metadata(len(self.leaderboard))
 
         self.logger.info("Updated database cache.")

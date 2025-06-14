@@ -1,27 +1,23 @@
+import discord
+from discord import app_commands
+from discord.ext.commands import Bot
+
+from api.utils import generate_link_url
+from bridge import create_linked_session
 from config import Config
 
-import discord
-from discord.ext.commands import Bot
-from discord import app_commands
-from api.utils import generate_link_url
-
-from db.cache.utils import (
-    last_updated_at,
+from ..custom_logger import CustomLogger as Logger
+from ..db.cache.utils import (
     get_player_count,
     get_rank_data_by_steam_id,
     get_rank_from_row,
+    last_updated_at,
 )
-from db.discord.utils import get_steam_id, unlink_user, get_role_id_for_rank
-from db.session.utils import create_or_extend_session, end_session
-
-from bridge import create_linked_session
-
-from .views import LinkView, UnlinkView
-
+from ..db.discord.utils import get_role_id_for_rank, get_steam_id, unlink_user
+from ..db.session.utils import create_or_extend_session, end_session
 from .cogs.maid import MaidCog
 from .cogs.roles import RoleCog
-
-from custom_logger import CustomLogger as Logger
+from .views import LinkView, UnlinkView
 
 TOKEN = Config.discord_token
 

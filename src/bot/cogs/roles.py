@@ -6,14 +6,13 @@ from db.cache.utils import get_rank_data_by_steam_id, get_rank_from_row
 from db.discord.utils import (
     get_role_id_for_rank,
     get_roles_for_guild,
-    set_role_id_for_rank,
     get_steam_id,
+    set_role_id_for_rank,
 )
 
-from constants import Rank, RoleDoctorOption
-from config import Config
-
-from custom_logger import CustomLogger as Logger
+from ...config import Config
+from ...constants import Rank, RoleDoctorOption
+from ...custom_logger import CustomLogger as Logger
 
 
 class RoleCog(commands.Cog, name="RoleCog"):
@@ -40,16 +39,11 @@ class RoleCog(commands.Cog, name="RoleCog"):
         if role_id:
             roles = get_roles_for_guild(guild_id)
             role_ids_to_remove = [val for val in roles.values() if val != role_id]
-            roles_to_remove = tuple(
-                discord.utils.get(member.guild.roles, id=val)
-                for val in role_ids_to_remove
-            )
+            roles_to_remove = tuple(discord.utils.get(member.guild.roles, id=val) for val in role_ids_to_remove)
 
             owned_roles = [role.name for role in member.roles]
             if rank.name not in owned_roles:
-                await member.add_roles(
-                    discord.utils.get(member.guild.roles, id=role_id)
-                )
+                await member.add_roles(discord.utils.get(member.guild.roles, id=role_id))
 
             self.logger.info(
                 f'Assigned role <name="{discord.utils.get(member.guild.roles, id=role_id).name}" id={role_id}> for rank {rank.name} to <name="{member.name}" id={member.id}>'
@@ -63,12 +57,8 @@ class RoleCog(commands.Cog, name="RoleCog"):
     @app_commands.command(name="roledoctor", description="Diagnose roles.")
     @app_commands.default_permissions(administrator=True)
     @app_commands.describe(option="Doctor option to run.")
-    @app_commands.guilds(
-        *[discord.Object(id=guild_id) for guild_id in Config.test_guild]
-    )
-    async def roledoctor(
-        self, interaction: discord.Interaction, option: RoleDoctorOption
-    ):
+    @app_commands.guilds(*[discord.Object(id=guild_id) for guild_id in Config.test_guild])
+    async def roledoctor(self, interaction: discord.Interaction, option: RoleDoctorOption):
         await interaction.response.defer()
         if option == RoleDoctorOption.check:
             roles = get_roles_for_guild(interaction.guild_id) or {}
@@ -88,12 +78,8 @@ class RoleCog(commands.Cog, name="RoleCog"):
     )
     @app_commands.default_permissions(administrator=True)
     @app_commands.describe(rank="Rank to pair to role.", role="Role to pair to rank.")
-    @app_commands.guilds(
-        *[discord.Object(id=guild_id) for guild_id in Config.test_guild]
-    )
-    async def configure(
-        self, interaction: discord.Interaction, rank: Rank, role: discord.Role
-    ):
+    @app_commands.guilds(*[discord.Object(id=guild_id) for guild_id in Config.test_guild])
+    async def configure(self, interaction: discord.Interaction, rank: Rank, role: discord.Role):
         succ = set_role_id_for_rank(interaction.guild.id, role.id, rank)
 
         embed: discord.Embed
