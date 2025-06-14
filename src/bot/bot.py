@@ -123,7 +123,7 @@ async def verify(
 
     if get_steam_id(interaction.user.id) is not None:
         role_cog: RoleCog = client.get_cog("RoleCog")
-        (succ, message) = await role_cog.assign_role(interaction.user)
+        (succ, message) = await role_cog.assign_roles(interaction.user)
         if succ:
             (rank, rank_num, score, role_id) = message
             role: discord.Role = discord.utils.get(interaction.guild.roles, id=role_id)

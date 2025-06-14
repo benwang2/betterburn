@@ -21,7 +21,7 @@ class RoleCog(commands.Cog, name="RoleCog"):
         self.bot = bot
         self.logger = Logger("rolecog")
 
-    async def assign_role(self, member: discord.Member) -> tuple[bool, object]:
+    async def assign_roles(self, member: discord.Member) -> tuple[bool, object]:
         guild_id = member.guild.id
 
         steam_id = get_steam_id(member.id)
