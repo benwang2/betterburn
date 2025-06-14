@@ -1,6 +1,7 @@
-from typing import List, Callable
 from datetime import datetime, timezone
-from config import Config
+from typing import Callable, List
+
+from .config import Config
 
 
 class LinkedSession:
@@ -48,11 +49,7 @@ def remove_linked_session_by_id(session_id: str):
 
 
 def cull_expired_linked_sessions() -> int:
-    sessions_to_cull = [
-        sess
-        for sess in sessions
-        if (datetime.now(timezone.utc) - sess.created_at).seconds > 60
-    ]
+    sessions_to_cull = [sess for sess in sessions if (datetime.now(timezone.utc) - sess.created_at).seconds > 60]
     for sess in sessions_to_cull:
         sessions.remove(sess)
     return len(sessions_to_cull)

@@ -1,10 +1,10 @@
 import datetime
-from datetime import timezone as tz
 from datetime import datetime as dt
+from datetime import timezone as tz
 
+from ...config import Config
 from ..database import SQLAlchemySession
 from .models import Session
-from ...config import Config
 
 
 def get_session_by_user(discord_id) -> Session | None:

@@ -1,8 +1,10 @@
-from indexed import IndexedOrderedDict as odict
-import requests
-import time
-from lxml import etree
 import csv
+import time
+
+import requests
+from indexed import IndexedOrderedDict as odict
+from lxml import etree
+
 from config import Config
 from custom_logger import CustomLogger as Logger
 
@@ -76,11 +78,7 @@ class SteamLeaderboard:
                     else:
                         break
 
-            self.logger.info(
-                "Took "
-                + str(time.time() - t_start)
-                + " seconds to get all leaderboard entries."
-            )
+            self.logger.info("Took " + str(time.time() - t_start) + " seconds to get all leaderboard entries.")
             t_start = time.time()
             steam_ids = []
             # Add data into an OrderedDict and get Steam display names
@@ -102,9 +100,7 @@ class SteamLeaderboard:
                 if personas.get(key):
                     data[key]["persona"] = personas[key]
 
-            self.logger.info(
-                "Took " + str(time.time() - t_start) + " seconds to combine data sets."
-            )
+            self.logger.info("Took " + str(time.time() - t_start) + " seconds to combine data sets.")
 
             self.__data__ = data
             return data

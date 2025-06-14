@@ -1,10 +1,10 @@
+import asyncio
+import functools
 import logging
 import sys
 from datetime import datetime
-from pathlib import Path
 from logging.handlers import RotatingFileHandler
-import functools
-import asyncio
+from pathlib import Path
 
 
 class CustomLogger:
@@ -49,9 +49,7 @@ class CustomLogger:
         self.logger.addHandler(CustomLogger._file_handler)
 
         # Add component name as extra field
-        self.logger = logging.LoggerAdapter(
-            self.logger, {"component_name": component_name}
-        )
+        self.logger = logging.LoggerAdapter(self.logger, {"component_name": component_name})
 
     @classmethod
     def _setup_shared_handler(cls, log_dir, file_level, max_bytes, backup_count):

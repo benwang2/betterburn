@@ -3,6 +3,7 @@ from db.database import init_db
 
 def test_cache():
     from time import perf_counter_ns
+
     from db.cache.utils import (
         bulk_insert_cache_from_file,
         clear_cache_table,
@@ -11,14 +12,10 @@ def test_cache():
     # with open("./data.csv","r")
     t_start = perf_counter_ns()
     clear_cache_table()
-    print(
-        f"Took {(perf_counter_ns() - t_start) / 1_000_000_000}s to clear cache table."
-    )
+    print(f"Took {(perf_counter_ns() - t_start) / 1_000_000_000}s to clear cache table.")
     t_start = perf_counter_ns()
     bulk_insert_cache_from_file("./data.csv")
-    print(
-        f"Took {(perf_counter_ns() - t_start) / 1_000_000_000}s to refresh cache table."
-    )
+    print(f"Took {(perf_counter_ns() - t_start) / 1_000_000_000}s to refresh cache table.")
     # query_example_data()
 
 
@@ -37,14 +34,10 @@ def test_steamboard():
     app_id = 2217000
     leaderboard_id = 14800950
 
-    board = SteamLeaderboard(
-        app_id=app_id, leaderboard_id=leaderboard_id, api_key=None, mute=False
-    )
+    board = SteamLeaderboard(app_id=app_id, leaderboard_id=leaderboard_id, api_key=None, mute=False)
     board.update()
 
-    print(
-        f"There are {len(board)} rows in <Steamboard app={app_id} leaderboard={leaderboard_id}>"
-    )
+    print(f"There are {len(board)} rows in <Steamboard app={app_id} leaderboard={leaderboard_id}>")
 
 
 def test_auth():

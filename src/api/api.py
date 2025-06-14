@@ -1,23 +1,19 @@
 from typing import Union
 
 import uvicorn
-
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse
-
 from pysteamsignin.steamsignin import SteamSignIn
-
-from ..db.session.utils import is_valid_session, get_session, end_session
-
-from ..db.discord.utils import link_user
-
-from config import Config
 
 from bridge import (
     find_linked_session,
-    remove_linked_session_by_id,
     get_ext_api_url,
+    remove_linked_session_by_id,
 )
+from config import Config
+
+from ..db.discord.utils import link_user
+from ..db.session.utils import end_session, get_session, is_valid_session
 
 STEAM_OPENID_URL = "https://steamcommunity.com/openid/login"
 

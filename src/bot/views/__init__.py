@@ -39,9 +39,7 @@ class UnlinkView(discord.ui.View):
         self.callback = callback
 
     @discord.ui.button(label="Confirm", style=discord.ButtonStyle.green)
-    async def end_interaction(
-        self, interaction: discord.Interaction, button: discord.ui.Button
-    ):
+    async def end_interaction(self, interaction: discord.Interaction, button: discord.ui.Button):
         embed = discord.Embed(
             title="Unlink completed",
             description="You have unlinked your steam account.",

@@ -1,7 +1,7 @@
 import threading
 import time
-from typing import List, Callable, Any, Dict
 import weakref
+from typing import Any, Callable, Dict, List
 
 
 class ConnectionTimeoutManager:
@@ -117,9 +117,7 @@ class Connection:
             self._signal.once_listeners.remove(self._listener)
 
         self._is_connected = False
-        print(
-            f"Connection disconnected after {time.time() - self._connection_time:.2f} seconds"
-        )
+        print(f"Connection disconnected after {time.time() - self._connection_time:.2f} seconds")
 
     def is_connected(self) -> bool:
         """

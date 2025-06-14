@@ -1,9 +1,10 @@
 from typing import Union
 
-from .models import UserTable, RoleTable, MembershipTable
-from ..database import SQLAlchemySession
-from constants import Rank, GuildRoles
+from constants import GuildRoles, Rank
 from signals import onUserLinked, onUserUnlinked
+
+from ..database import SQLAlchemySession
+from .models import MembershipTable, RoleTable, UserTable
 
 
 def get_roles_for_guild(guild_id) -> GuildRoles:

@@ -1,12 +1,12 @@
-from sqlalchemy import Column, BigInteger, TIMESTAMP, VARCHAR
-from ..base import Base
-
 import datetime
 from datetime import datetime as dt
 from datetime import timezone as tz
 from uuid import uuid4 as uuid
 
+from sqlalchemy import TIMESTAMP, VARCHAR, BigInteger, Column
+
 from ...config import Config
+from ..base import Base
 
 
 class Session(Base):
