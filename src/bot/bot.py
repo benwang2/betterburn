@@ -51,9 +51,7 @@ async def link(interaction: discord.Interaction):
     async def handler(steam_id):
         try:
             message = await interaction.original_response()
-            logger.info(
-                f'Linked Discord user <name="{interaction.user.name}" id={discord_id}> to SteamID = {steam_id}'
-            )
+            logger.info(f'Linked Discord user <name="{interaction.user.name}" id={discord_id}> to SteamID = {steam_id}')
 
             embed = discord.Embed(
                 title="You have linked your Discord account. Run `/verify` to verify your rank.",
@@ -93,9 +91,7 @@ async def unlink(interaction: discord.Interaction):
 
         async def unlink_action():
             await unlink_user(discord_id)
-            logger.info(
-                f'Unlinked Discord user <name="{interaction.user.name}" id={discord_id}>'
-            )
+            logger.info(f'Unlinked Discord user <name="{interaction.user.name}" id={discord_id}>')
 
         view = UnlinkView(unlink_action)
         await interaction.followup.send(embed=embed, view=view)
@@ -127,9 +123,7 @@ async def verify(
         if succ:
             (rank, rank_num, score, role_id) = message
             role: discord.Role = discord.utils.get(interaction.guild.roles, id=role_id)
-            file = discord.File(
-                f"./src/img/{rank.lower()}.png", filename=f"{rank.lower()}.png"
-            )
+            file = discord.File(f"./src/img/{rank.lower()}.png", filename=f"{rank.lower()}.png")
             embed = discord.Embed(
                 title="Your rank has been verified.",
                 description=f"**{rank}** - `{score}` - #{rank_num}",
@@ -140,9 +134,7 @@ async def verify(
             last_updated = last_updated_at()
             if last_updated is not None:
                 last_updated_text = f"<t:{int(last_updated)}:R>"
-                embed.add_field(
-                    name="Database last updated", value=last_updated_text, inline=False
-                )
+                embed.add_field(name="Database last updated", value=last_updated_text, inline=False)
 
             await interaction.followup.send(embed=embed, file=file)
         else:
@@ -171,20 +163,12 @@ async def verify(
 @app_commands.check(lambda interaction: interaction.user.id == 154046172254830592)
 async def check(interaction: discord.Interaction, member: discord.Member):
     """Handles the /check command."""
-    embed = discord.Embed(
-        title=f"Information about {member.display_name}", color=discord.Color.blue()
-    )
-    embed.add_field(
-        name="Username", value=f"{member.name}#{member.discriminator}", inline=False
-    )
+    embed = discord.Embed(title=f"Information about {member.display_name}", color=discord.Color.blue())
+    embed.add_field(name="Username", value=f"{member.name}#{member.discriminator}", inline=False)
     embed.add_field(name="ID", value=member.id, inline=False)
     embed.add_field(
         name="Joined Server",
-        value=(
-            member.joined_at.strftime("%Y-%m-%d %H:%M:%S")
-            if member.joined_at
-            else "Unknown"
-        ),
+        value=(member.joined_at.strftime("%Y-%m-%d %H:%M:%S") if member.joined_at else "Unknown"),
         inline=False,
     )
     embed.add_field(
@@ -201,9 +185,7 @@ async def check(interaction: discord.Interaction, member: discord.Member):
 
     if ranked_data is not None:
         rank = get_rank_from_row(ranked_data)
-        role: discord.Role = discord.utils.get(
-            member.guild.roles, id=get_role_id_for_rank(member.guild.id, rank)
-        )
+        role: discord.Role = discord.utils.get(member.guild.roles, id=get_role_id_for_rank(member.guild.id, rank))
         embed.add_field(
             name="ELO",
             value=ranked_data.score,
@@ -252,9 +234,7 @@ async def on_ready():
         if guild_id not in Config.test_guild:
             server = client.get_guild(guild_id)
             client_mbr = server.get_member(client.user.id)
-            logger.info(
-                f"Betterburn joined <name={server.name} id={guild_id}> on {client_mbr.joined_at}"
-            )
+            logger.info(f"Betterburn joined <name={server.name} id={guild_id}> on {client_mbr.joined_at}")
             await server.leave()
 
     await client.add_cog(MaidCog(client))
@@ -265,9 +245,7 @@ async def on_ready():
             await client.tree.sync(guild=discord.Object(id=guild_id))
         except discord.Forbidden:
             # Handle forbidden errors (e.g., bot lacks permissions)
-            logger.error(
-                f"Discord bot lacks permissions to sync commands to guild_id = {guild_id}"
-            )
+            logger.error(f"Discord bot lacks permissions to sync commands to guild_id = {guild_id}")
         except Exception as e:
             logger.error(str(e))
 

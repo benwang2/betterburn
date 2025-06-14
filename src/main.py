@@ -2,9 +2,9 @@ import asyncio
 import sys
 import threading
 
-from api.api import start as start_fastapi
-from bot.bot import start_bot
-from db.database import init_db
+from .api.api import start as start_fastapi
+from .bot.bot import start_bot
+from .db.database import init_db
 
 import traceback
 from custom_logger import CustomLogger as Logger

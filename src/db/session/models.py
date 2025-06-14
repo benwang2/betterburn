@@ -6,7 +6,7 @@ from datetime import datetime as dt
 from datetime import timezone as tz
 from uuid import uuid4 as uuid
 
-from config import Config
+from ...config import Config
 
 
 class Session(Base):

@@ -7,9 +7,9 @@ from fastapi.responses import HTMLResponse
 
 from pysteamsignin.steamsignin import SteamSignIn
 
-from db.session.utils import is_valid_session, get_session, end_session
+from ..db.session.utils import is_valid_session, get_session, end_session
 
-from db.discord.utils import link_user
+from ..db.discord.utils import link_user
 
 from config import Config
 
@@ -26,7 +26,6 @@ app = FastAPI()
 
 @app.get("/api/link/")
 async def link(sessionId: Union[str, None] = None):
-
     if sessionId is None:
         raise HTTPException(status_code=400, detail="No session id was provided")
 
@@ -44,7 +43,6 @@ async def link(sessionId: Union[str, None] = None):
 
 @app.get("/api/auth")
 async def auth(sessionId: str, request: Request):
-
     if sessionId is None:
         raise HTTPException(status_code=400, detail="No session id was provided")
 

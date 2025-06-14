@@ -4,7 +4,7 @@ from datetime import datetime as dt
 
 from ..database import SQLAlchemySession
 from .models import Session
-from config import Config
+from ...config import Config
 
 
 def get_session_by_user(discord_id) -> Session | None:
@@ -33,9 +33,7 @@ def create_or_extend_session(discord_id):
     session = db.query(Session).filter_by(discord_id=discord_id).first()
 
     if session:
-        session.expires_at = dt.now(tz.utc) + datetime.timedelta(
-            minutes=Config.session_duration
-        )
+        session.expires_at = dt.now(tz.utc) + datetime.timedelta(minutes=Config.session_duration)
     else:
         session = Session(discord_id=discord_id)
         db.add(session)
