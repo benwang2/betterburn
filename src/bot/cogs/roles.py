@@ -7,6 +7,7 @@ from ...constants import Rank, RoleDoctorOption
 from ...custom_logger import CustomLogger as Logger
 from ...db.cache.utils import get_rank_data_by_steam_id, get_rank_from_row
 from ...db.discord.utils import (
+    get_guild_ids_for_user,
     get_role_id_for_rank,
     get_roles_for_guild,
     get_steam_id,
@@ -19,10 +20,35 @@ class RoleCog(commands.Cog, name="RoleCog"):
         self.bot = bot
         self.logger = Logger("rolecog")
 
-    async def assign_roles(self, member: discord.Member) -> tuple[bool, object]:
-        guild_id = member.guild.id
+    async def assign_role(self, user_id: int, guild_id: int, rank_name: Rank) -> int | bool:
+        role_id = get_role_id_for_rank(guild_id, rank_name)
 
+        if role_id:
+            member = discord.utils.get(self.bot.get_guild(guild_id).members, id=user_id)
+            roles = get_roles_for_guild(guild_id)
+            role_ids_to_remove = [val for val in roles.values() if val != role_id]
+            roles_to_remove = tuple(discord.utils.get(member.guild.roles, id=val) for val in role_ids_to_remove)
+
+            owned_roles = [role.name for role in member.roles]
+            role_to_add = discord.utils.get(member.guild.roles, id=role_id)
+            if rank_name not in owned_roles:
+                await member.add_roles(role_to_add)
+
+            self.logger.info(
+                f'Assigned role <name="{discord.utils.get(member.guild.roles, id=role_id).name}" id={role_id}> for rank {rank_name} to <name="{member.name}" id={member.id}>'
+            )
+
+            await member.remove_roles(*roles_to_remove)
+            return role_to_add
+
+        return False
+
+    async def assign_roles(self, member: discord.Member) -> tuple[bool, object]:
+        guild_ids = get_guild_ids_for_user(member.id)
         steam_id = get_steam_id(member.id)
+
+        if guild_ids is None:
+            return (False, f"No guilds found for user {member.id}")
 
         if steam_id is None:
             return (False, f"No SteamID is linked to DiscordID {member.id}")
@@ -32,26 +58,16 @@ class RoleCog(commands.Cog, name="RoleCog"):
         if rank_data is None:
             return (False, f"Couldn't find rank for SteamID {steam_id}")
 
-        rank = get_rank_from_row(rank_data)
-        role_id = get_role_id_for_rank(guild_id, rank)
+        rank_name = get_rank_from_row(rank_data)
 
-        if role_id:
-            roles = get_roles_for_guild(guild_id)
-            role_ids_to_remove = [val for val in roles.values() if val != role_id]
-            roles_to_remove = tuple(discord.utils.get(member.guild.roles, id=val) for val in role_ids_to_remove)
+        guild_ids = sorted(guild_ids, key=lambda x: -1 if x == member.guild.id else x, reverse=False)
+        roles = []
+        for guild_id in guild_ids:
+            role = await self.assign_role(member.id, guild_id, rank_name)
+            if role:
+                roles.append(role)
 
-            owned_roles = [role.name for role in member.roles]
-            if rank.name not in owned_roles:
-                await member.add_roles(discord.utils.get(member.guild.roles, id=role_id))
-
-            self.logger.info(
-                f'Assigned role <name="{discord.utils.get(member.guild.roles, id=role_id).name}" id={role_id}> for rank {rank.name} to <name="{member.name}" id={member.id}>'
-            )
-
-            await member.remove_roles(*roles_to_remove)
-            return (True, (rank.name, rank_data.rank, rank_data.score, role_id))
-
-        return (False, f"No role is assigned to rank {rank.name}")
+        return True, (roles, rank_name, rank_data.rank, rank_data.score)
 
     @app_commands.command(name="roledoctor", description="Diagnose roles.")
     @app_commands.default_permissions(administrator=True)
