@@ -63,6 +63,11 @@ def get_guild_ids_for_user(user_id) -> Union[list[int], None]:
     return [membership.guild_id for membership in memberships]
 
 
+def get_users_iter():
+    db = SQLAlchemySession()
+    return db.query(UserTable)
+
+
 async def link_user(user_id, steam_id):
     db = SQLAlchemySession()
 
