@@ -1,0 +1,16 @@
+services:
+  betterburn:
+    build: .
+    ports:
+      - "${APPLICATION_PORT:-80}:${APPLICATION_PORT:-80}"
+    volumes:
+      # Data path for SQLite database
+      - ${DATA_PATH:-./.container/data}:/data
+      # Logs path for application logs
+      - ${LOGS_PATH:-./.container/logs}:/app/logs
+    env_file:
+      - .env
+    environment:
+      # Override DB path to use the named volume
+      - DATABASE_URL=sqlite:////data/betterburn.db
+    restart: unless-stopped

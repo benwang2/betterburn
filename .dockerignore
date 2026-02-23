@@ -1,0 +1,14 @@
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.db
+.git/
+.github/
+tests/
+logs/
+scripts/
+config.toml
+.env
+README.md
+docker-compose.yml

@@ -1,4 +1,5 @@
 .env
+.container
 /logs
 *.db
 
