@@ -1,4 +1,4 @@
-config.toml
+.env
 /logs
 *.db
 
