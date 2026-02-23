@@ -2,8 +2,11 @@ import csv
 from datetime import datetime, timezone
 
 from ...constants import Rank
+from ...custom_logger import CustomLogger
 from ..database import SQLAlchemySession
 from .models import LeaderboardRow, Metadata
+
+logger = CustomLogger("cache_utils")
 
 
 # Insert example data into the cache table
@@ -109,7 +112,7 @@ def bulk_insert_cache_from_list(leaderboard: list):
         db.commit()
     except Exception as e:
         db.rollback()
-        print(f"Error occurred during bulk insert: {e}")
+        logger.error(f"Error occurred during bulk insert: {e}")
     finally:
         db.close()
 
@@ -145,10 +148,10 @@ def bulk_insert_cache_from_file(file_path):
 
         db.bulk_save_objects(records)
         db.commit()
-        print(f"Successfully inserted {len(records)} records into the 'cache' table.")
+        logger.info(f"Successfully inserted {len(records)} records into the 'cache' table.")
     except Exception as e:
         db.rollback()
-        print(f"Error occurred during bulk insert: {e}")
+        logger.error(f"Error occurred during bulk insert: {e}")
     finally:
         db.close()
 
@@ -158,10 +161,10 @@ def clear_cache_table():
     try:
         db.query(LeaderboardRow).delete()
         db.commit()
-        print("Cache table cleared successfully.")
+        logger.info("Cache table cleared successfully.")
     except Exception as e:
         db.rollback()
-        print(f"Error occurred while clearing cache table: {e}")
+        logger.error(f"Error occurred while clearing cache table: {e}")
     finally:
         db.close()
 
@@ -170,7 +173,7 @@ def last_updated_at():
     db = SQLAlchemySession()
     try:
         metadata = db.query(Metadata).order_by(Metadata.updated.desc()).first()
-        print(metadata)
+        logger.info(f"Last updated metadata: {metadata}")
         return metadata.updated if metadata else None
     finally:
         db.close()

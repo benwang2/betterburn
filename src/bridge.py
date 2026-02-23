@@ -2,6 +2,7 @@ from datetime import datetime, timezone
 from typing import Callable, List
 
 from .config import Config
+from .custom_logger import logger
 
 
 class LinkedSession:
@@ -37,7 +38,7 @@ def find_linked_session(session_id) -> LinkedSession | None:
 def create_linked_session(session_id: str, discord_id: str) -> LinkedSession:
     sess = LinkedSession(session_id=session_id, discord_id=discord_id)
     sessions.append(sess)
-
+    logger.debug("Created linked session", session_id=session_id, discord_id=discord_id)
     return sess
 
 
@@ -52,6 +53,8 @@ def cull_expired_linked_sessions() -> int:
     sessions_to_cull = [sess for sess in sessions if (datetime.now(timezone.utc) - sess.created_at).seconds > 60]
     for sess in sessions_to_cull:
         sessions.remove(sess)
+    if len(sessions_to_cull) > 0:
+        logger.debug("Culled expired linked sessions", count=len(sessions_to_cull))
     return len(sessions_to_cull)
 
 
