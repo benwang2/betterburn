@@ -35,7 +35,11 @@ All DB access uses `SQLAlchemySession()` from `src/db/database.py` (SQLite, file
 
 ## Conventions
 
-- **Logging**: Use `CustomLogger` from `src/custom_logger.py`, not stdlib `logging` directly. Instantiate per-component: `logger = CustomLogger("component_name")`
+- **Logging**: Use `CustomLogger` from `src/custom_logger.py` (structlog-based). Import the default `logger` for infrastructure/top-level code (`from .custom_logger import logger`) or create component-specific loggers (`logger = CustomLogger("component_name")`). Never use stdlib `logging` directly. Examples:
+  - `main.py`, `bridge.py` → use default `logger` (root logger)
+  - `bot.py` → `CustomLogger("discord")`
+  - `api.py` → `CustomLogger("fastapi")`
+  - Cogs/modules → create their own (e.g., `CustomLogger("maid")`)
 - **Rank thresholds** are defined in `src/db/cache/utils.py::get_rank_from_row()` — score ranges map to `Rank` enum values from `src/constants.py`
 - **Signals**: `src/signals/__init__.py` provides `onUserLinked` and `onUserUnlinked` — async signals emitted from `src/db/discord/utils.py` on link/unlink
 - **Imports**: Use relative imports within `src/` (e.g., `from ..config import Config`)
