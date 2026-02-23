@@ -20,6 +20,7 @@ class Config:
     cache_update_interval: int = int(os.environ.get("CACHE_UPDATE_INTERVAL", "120"))
     session_duration: int = int(os.environ.get("SESSION_DURATION", "300"))
     discord_token: str = os.environ.get("DISCORD_TOKEN", "")
+    database_url: str = os.environ.get("DATABASE_URL", "sqlite:///betterburn.db")
     # Comma-separated guild IDs, e.g. TEST_GUILD=123456789,987654321
     test_guild: list[int] = _parse_int_list(os.environ.get("TEST_GUILD", ""))
 
