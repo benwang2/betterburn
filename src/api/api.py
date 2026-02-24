@@ -14,11 +14,18 @@ from ..config import Config
 from ..custom_logger import CustomLogger
 from ..db.discord.utils import link_user
 from ..db.session.utils import end_session, get_session, is_valid_session
+from .health import get_health_status
 
 STEAM_OPENID_URL = "https://steamcommunity.com/openid/login"
 
 logger = CustomLogger("fastapi")
 app = FastAPI()
+
+
+@app.get("/healthz")
+async def healthz():
+    """Comprehensive health check endpoint for load balancers and monitoring."""
+    return get_health_status()
 
 
 @app.get("/api/link/")
