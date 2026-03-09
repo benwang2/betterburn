@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Any, cast
 
 import discord
 from discord import app_commands
@@ -7,7 +8,7 @@ from discord.ext import commands
 from ...config import Config
 from ...constants import Rank, RoleDoctorOption
 from ...custom_logger import CustomLogger as Logger
-from ...db.cache.utils import get_rank_from_values
+from ...db.cache.utils import get_rank_data_by_steam_id, get_rank_from_row, get_rank_from_values, last_updated_at
 from ...db.discord.utils import (
     get_role_id_for_rank,
     get_roles_for_guild,
@@ -18,7 +19,9 @@ from ...leaderboard_api import (
     LeaderboardApiBadRequestError,
     LeaderboardApiNotFoundError,
     LeaderboardApiUnavailableError,
-    LeaderboardStanding,
+    is_leaderboard_api_enabled,
+)
+from ...leaderboard_api import (
     client as leaderboard_api,
 )
 
@@ -27,7 +30,10 @@ from ...leaderboard_api import (
 class RoleAssignmentResult:
     rank: Rank
     role_id: int
-    standing: LeaderboardStanding
+    score: int
+    position: int
+    updated_at: Any = None
+    source: str = "steamboard"
 
 
 class RoleCog(commands.Cog, name="RoleCog"):
@@ -44,23 +50,41 @@ class RoleCog(commands.Cog, name="RoleCog"):
         if steam_id is None:
             return (False, f"No SteamID is linked to DiscordID {member.id}")
 
-        try:
-            standing = await self.leaderboard_api.get_standing_async(steam_id)
-        except LeaderboardApiNotFoundError:
-            return (False, f"Couldn't find leaderboard data for SteamID {steam_id}")
-        except LeaderboardApiBadRequestError as exc:
-            return (False, str(exc))
-        except LeaderboardApiUnavailableError:
-            return (False, "Leaderboard service is currently unavailable. Please try again later.")
+        if is_leaderboard_api_enabled():
+            try:
+                standing = await self.leaderboard_api.get_standing_async(steam_id)
+            except LeaderboardApiNotFoundError:
+                return (False, f"Couldn't find leaderboard data for SteamID {steam_id}")
+            except LeaderboardApiBadRequestError as exc:
+                return (False, str(exc))
+            except LeaderboardApiUnavailableError:
+                return (False, "Leaderboard service is currently unavailable. Please try again later.")
 
-        rank = get_rank_from_values(standing.stat_value, standing.position)
+            rank = get_rank_from_values(standing.stat_value, standing.position)
+            score = standing.stat_value
+            position = standing.position
+            updated_at = standing.timestamp
+            source = "leaderboard_api"
+        else:
+            rank_data = get_rank_data_by_steam_id(steam_id)
+            if rank_data is None:
+                return (False, f"Couldn't find rank for SteamID {steam_id}")
+
+            rank = get_rank_from_row(rank_data)
+            score = cast(int, rank_data.score)
+            position = cast(int, rank_data.rank)
+            updated_at = last_updated_at()
+            source = "steamboard"
+
         role_id = get_role_id_for_rank(guild_id, rank)
 
         if role_id:
             roles = get_roles_for_guild(guild_id)
             role_ids_to_remove = [val for val in roles.values() if val != role_id]
             roles_to_remove = tuple(
-                role for role in (discord.utils.get(member.guild.roles, id=val) for val in role_ids_to_remove) if role is not None
+                role
+                for role in (discord.utils.get(member.guild.roles, id=val) for val in role_ids_to_remove)
+                if role is not None
             )
             target_role = discord.utils.get(member.guild.roles, id=role_id)
 
@@ -78,7 +102,17 @@ class RoleCog(commands.Cog, name="RoleCog"):
             if roles_to_remove:
                 await member.remove_roles(*roles_to_remove)
 
-            return (True, RoleAssignmentResult(rank=rank, role_id=role_id, standing=standing))
+            return (
+                True,
+                RoleAssignmentResult(
+                    rank=rank,
+                    role_id=role_id,
+                    score=score,
+                    position=position,
+                    updated_at=updated_at,
+                    source=source,
+                ),
+            )
 
         return (False, f"No role is assigned to rank {rank.name}")
 

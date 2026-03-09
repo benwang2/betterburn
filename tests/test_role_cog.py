@@ -57,6 +57,7 @@ async def test_assign_roles_uses_leaderboard_api(monkeypatch):
     )
 
     monkeypatch.setattr(roles_module, "get_steam_id", lambda user_id: 76561198000000000)
+    monkeypatch.setattr(roles_module, "is_leaderboard_api_enabled", lambda: True)
     monkeypatch.setattr(roles_module, "get_role_id_for_rank", lambda guild_id, rank: 30)
     monkeypatch.setattr(
         roles_module,
@@ -81,3 +82,38 @@ async def test_assign_roles_uses_leaderboard_api(monkeypatch):
     assert result.rank == Rank.Gold
     assert [role.id for role in member.added_roles] == [30]
     assert [role.id for role in member.removed_roles] == [10, 20]
+
+
+@pytest.mark.asyncio
+async def test_assign_roles_falls_back_to_cached_steamboard(monkeypatch):
+    import src.bot.cogs.roles as roles_module
+
+    class DummyRow:
+        score = 950
+        rank = 50
+
+    monkeypatch.setattr(roles_module, "get_steam_id", lambda user_id: 76561198000000000)
+    monkeypatch.setattr(roles_module, "is_leaderboard_api_enabled", lambda: False)
+    monkeypatch.setattr(roles_module, "get_rank_data_by_steam_id", lambda steam_id: DummyRow())
+    monkeypatch.setattr(roles_module, "last_updated_at", lambda: 1234567890)
+    monkeypatch.setattr(roles_module, "get_role_id_for_rank", lambda guild_id, rank: 30)
+    monkeypatch.setattr(
+        roles_module,
+        "get_roles_for_guild",
+        lambda guild_id: {
+            Rank.Bronze.name: 10,
+            Rank.Silver.name: 20,
+            Rank.Gold.name: 30,
+        },
+    )
+
+    guild_roles = [DummyRole(10, Rank.Bronze.name), DummyRole(20, Rank.Silver.name), DummyRole(30, Rank.Gold.name)]
+    member = DummyMember(123, DummyGuild(456, guild_roles), [DummyRole(10, Rank.Bronze.name)])
+
+    cog = RoleCog(bot=SimpleNamespace())
+    success, result = await cog.assign_roles(member)
+
+    assert success is True
+    assert result.source == "steamboard"
+    assert result.score == 950
+    assert result.position == 50

@@ -4,6 +4,7 @@ import requests
 from src.leaderboard_api import (
     LeaderboardApiBadRequestError,
     LeaderboardApiClient,
+    LeaderboardApiDisabledError,
     LeaderboardApiUnavailableError,
 )
 
@@ -66,4 +67,13 @@ def test_get_health_raises_unavailable_on_request_failure(monkeypatch):
     client = LeaderboardApiClient(base_url="http://leaderboard.test")
 
     with pytest.raises(LeaderboardApiUnavailableError, match="unavailable"):
+        client.get_health()
+
+
+def test_client_is_disabled_without_base_url():
+    client = LeaderboardApiClient(base_url=None)
+
+    assert client.enabled is False
+
+    with pytest.raises(LeaderboardApiDisabledError, match="not configured"):
         client.get_health()

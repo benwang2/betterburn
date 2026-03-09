@@ -15,7 +15,7 @@ def _parse_int_list(value: str) -> list[int]:
 class Config:
     api_url: str = os.environ.get("API_URL", "localhost")
     application_port: int = int(os.environ.get("APPLICATION_PORT", "80"))
-    leaderboard_api_base_url: str = os.environ.get("LEADERBOARD_API_BASE_URL", "http://localhost:8000")
+    leaderboard_api_base_url: str | None = os.environ.get("LEADERBOARD_API_BASE_URL") or None
     app_id: int = int(os.environ.get("APP_ID", "2217000"))
     leaderboard_id: int = int(os.environ.get("LEADERBOARD_ID", "16200142"))
     cache_update_interval: int = int(os.environ.get("CACHE_UPDATE_INTERVAL", "120"))
@@ -28,5 +28,5 @@ class Config:
     def __str__(self) -> str:
         return (
             f'<api_url="{self.api_url}" leaderboard_api_base_url="{self.leaderboard_api_base_url}" '
-            f'app_id={self.app_id} leaderboard_id={self.leaderboard_id} session_duration={self.session_duration}>'
+            f"app_id={self.app_id} leaderboard_id={self.leaderboard_id} session_duration={self.session_duration}>"
         )

@@ -14,7 +14,9 @@ from ..config import Config
 from ..custom_logger import CustomLogger
 from ..db.discord.utils import link_user
 from ..db.session.utils import end_session, get_session, is_valid_session
-from ..leaderboard_api import LeaderboardApiError, client as leaderboard_api
+from ..leaderboard_api import LeaderboardApiError
+from ..leaderboard_api import is_leaderboard_api_enabled
+from ..leaderboard_api import client as leaderboard_api
 from .health import get_health_status
 
 STEAM_OPENID_URL = "https://steamcommunity.com/openid/login"
@@ -69,25 +71,26 @@ async def auth(sessionId: str, request: Request):
 
     mapping_message = None
 
-    try:
-        mapping = await leaderboard_api.create_mapping_async(steamID)
-        logger.info(
-            "Created leaderboard mapping",
-            discord_id=session.discord_id,
-            steam_id=mapping.steam_id,
-            playfab_id=mapping.playfab_id,
-        )
-    except LeaderboardApiError as exc:
-        mapping_message = (
-            "Your Steam account was linked, but leaderboard mapping could not be confirmed yet. "
-            "If `/verify` fails, please try again shortly."
-        )
-        logger.warning(
-            "Failed to create leaderboard mapping after link",
-            discord_id=session.discord_id,
-            steam_id=steamID,
-            error=str(exc),
-        )
+    if is_leaderboard_api_enabled():
+        try:
+            mapping = await leaderboard_api.create_mapping_async(steamID)
+            logger.info(
+                "Created leaderboard mapping",
+                discord_id=session.discord_id,
+                steam_id=mapping.steam_id,
+                playfab_id=mapping.playfab_id,
+            )
+        except LeaderboardApiError as exc:
+            mapping_message = (
+                "Your Steam account was linked, but leaderboard mapping could not be confirmed yet. "
+                "If `/verify` fails, please try again shortly."
+            )
+            logger.warning(
+                "Failed to create leaderboard mapping after link",
+                discord_id=session.discord_id,
+                steam_id=steamID,
+                error=str(exc),
+            )
 
     linked_session = find_linked_session(session_id=sessionId)
 

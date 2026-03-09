@@ -25,6 +25,10 @@ class LeaderboardApiUnavailableError(LeaderboardApiError):
     pass
 
 
+class LeaderboardApiDisabledError(LeaderboardApiError):
+    pass
+
+
 @dataclass(frozen=True)
 class LeaderboardStanding:
     steam_id: str
@@ -42,11 +46,19 @@ class LeaderboardMapping:
 
 class LeaderboardApiClient:
     def __init__(self, base_url: str | None = None, timeout: int = 10):
-        self.base_url = (base_url or Config.leaderboard_api_base_url).rstrip("/")
+        resolved_base_url = base_url if base_url is not None else Config.leaderboard_api_base_url
+        self.base_url = resolved_base_url.rstrip("/") if resolved_base_url else None
         self.timeout = timeout
         self.logger = Logger("leaderboard_api")
 
+    @property
+    def enabled(self) -> bool:
+        return bool(self.base_url)
+
     def _build_url(self, path: str) -> str:
+        if not self.base_url:
+            raise LeaderboardApiDisabledError("Leaderboard API is not configured")
+
         return f"{self.base_url}{path}"
 
     def _parse_json(self, response: requests.Response) -> dict[str, Any]:
@@ -111,3 +123,7 @@ class LeaderboardApiClient:
 
 
 client = LeaderboardApiClient()
+
+
+def is_leaderboard_api_enabled() -> bool:
+    return client.enabled

@@ -7,8 +7,11 @@ from typing import Any, Dict
 from sqlalchemy import select
 
 from ..custom_logger import CustomLogger
+from ..db.cache.utils import get_player_count, last_updated_at
 from ..db.database import SQLAlchemySession
-from ..leaderboard_api import LeaderboardApiError, client as leaderboard_api
+from ..leaderboard_api import LeaderboardApiError
+from ..leaderboard_api import is_leaderboard_api_enabled
+from ..leaderboard_api import client as leaderboard_api
 
 logger = CustomLogger("health")
 
@@ -42,6 +45,20 @@ def check_leaderboard_api() -> Dict[str, Any]:
         dict with status and remote service metrics
     """
     try:
+        if not is_leaderboard_api_enabled():
+            last_updated = last_updated_at()
+            if last_updated is None:
+                return {"status": "warning", "message": "Cache has never been updated"}
+
+            age_seconds = int(datetime.now(timezone.utc).timestamp()) - int(last_updated)
+            return {
+                "status": "ok",
+                "service_status": "steamboard",
+                "player_count": get_player_count(),
+                "last_updated": datetime.fromtimestamp(last_updated, tz=timezone.utc).isoformat(),
+                "age_seconds": age_seconds,
+            }
+
         health = leaderboard_api.get_health()
         return {
             "status": "ok",

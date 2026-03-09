@@ -8,15 +8,18 @@ from ..api.utils import generate_link_url
 from ..bridge import create_linked_session
 from ..config import Config
 from ..custom_logger import CustomLogger as Logger
-from ..db.cache.utils import get_rank_from_values
+from ..db.cache.utils import get_player_count, get_rank_data_by_steam_id, get_rank_from_row, get_rank_from_values, last_updated_at
 from ..db.discord.utils import get_role_id_for_rank, get_steam_id, unlink_user
+from ..db.session.utils import create_or_extend_session, end_session
 from ..leaderboard_api import (
     LeaderboardApiBadRequestError,
     LeaderboardApiNotFoundError,
     LeaderboardApiUnavailableError,
+    is_leaderboard_api_enabled,
+)
+from ..leaderboard_api import (
     client as leaderboard_api,
 )
-from ..db.session.utils import create_or_extend_session, end_session
 from .cogs.maid import MaidCog
 from .cogs.roles import RoleAssignmentResult, RoleCog
 from .views import LinkView, UnlinkView
@@ -29,13 +32,18 @@ logger = Logger("discord")
 # tree = app_commands.CommandTree(client)
 
 
-def _relative_discord_timestamp(timestamp: str) -> str | None:
-    try:
-        parsed = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
-    except ValueError:
+def _relative_discord_timestamp(timestamp: str | int | float | None) -> str | None:
+    if timestamp is None:
         return None
 
-    return f"<t:{int(parsed.timestamp())}:R>"
+    try:
+        if isinstance(timestamp, str):
+            parsed = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+            return f"<t:{int(parsed.timestamp())}:R>"
+
+        return f"<t:{int(timestamp)}:R>"
+    except (TypeError, ValueError):
+        return None
 
 
 @client.tree.command(
@@ -138,14 +146,15 @@ async def verify(
             file = discord.File(f"./src/img/{rank.lower()}.png", filename=f"{rank.lower()}.png")
             embed = discord.Embed(
                 title="Your rank has been verified.",
-                description=f"**{rank}** - `{result.standing.stat_value}` - #{result.standing.position}",
+                description=f"**{rank}** - `{result.score}` - #{result.position}",
                 color=role.color,
             )
             embed.set_image(url=f"attachment://{rank.lower()}.png")
 
-            leaderboard_timestamp = _relative_discord_timestamp(result.standing.timestamp)
+            leaderboard_timestamp = _relative_discord_timestamp(result.updated_at)
             if leaderboard_timestamp is not None:
-                embed.add_field(name="Leaderboard updated", value=leaderboard_timestamp, inline=False)
+                field_name = "Leaderboard updated" if result.source == "leaderboard_api" else "Database last updated"
+                embed.add_field(name=field_name, value=leaderboard_timestamp, inline=False)
 
             await interaction.followup.send(embed=embed, file=file)
         else:
@@ -191,26 +200,42 @@ async def check(interaction: discord.Interaction, member: discord.Member):
     member_steam_id = get_steam_id(member.id)
 
     if member_steam_id is not None:
-        try:
-            standing = await leaderboard_api.get_standing_async(member_steam_id)
-            rank = get_rank_from_values(standing.stat_value, standing.position)
-            role_id = get_role_id_for_rank(member.guild.id, rank)
-            role: discord.Role | None = discord.utils.get(member.guild.roles, id=role_id) if role_id else None
-            embed.add_field(name="ELO", value=standing.stat_value, inline=False)
-            embed.add_field(name="Leaderboard Position", value=f"#{standing.position}", inline=False)
+        if is_leaderboard_api_enabled():
+            try:
+                standing = await leaderboard_api.get_standing_async(member_steam_id)
+                rank = get_rank_from_values(standing.stat_value, standing.position)
+                role_id = get_role_id_for_rank(member.guild.id, rank)
+                role: discord.Role | None = discord.utils.get(member.guild.roles, id=role_id) if role_id else None
+                embed.add_field(name="ELO", value=standing.stat_value, inline=False)
+                embed.add_field(name="Leaderboard Position", value=f"#{standing.position}", inline=False)
 
-            leaderboard_timestamp = _relative_discord_timestamp(standing.timestamp)
-            if leaderboard_timestamp is not None:
-                embed.add_field(name="Leaderboard updated", value=leaderboard_timestamp, inline=False)
+                leaderboard_timestamp = _relative_discord_timestamp(standing.timestamp)
+                if leaderboard_timestamp is not None:
+                    embed.add_field(name="Leaderboard updated", value=leaderboard_timestamp, inline=False)
 
-            if role is not None:
-                embed.color = role.color
-        except LeaderboardApiNotFoundError:
-            embed.add_field(name="Leaderboard", value="No leaderboard data found.", inline=False)
-        except LeaderboardApiBadRequestError as exc:
-            embed.add_field(name="Leaderboard", value=str(exc), inline=False)
-        except LeaderboardApiUnavailableError:
-            embed.add_field(name="Leaderboard", value="Leaderboard service is currently unavailable.", inline=False)
+                if role is not None:
+                    embed.color = role.color
+            except LeaderboardApiNotFoundError:
+                embed.add_field(name="Leaderboard", value="No leaderboard data found.", inline=False)
+            except LeaderboardApiBadRequestError as exc:
+                embed.add_field(name="Leaderboard", value=str(exc), inline=False)
+            except LeaderboardApiUnavailableError:
+                embed.add_field(name="Leaderboard", value="Leaderboard service is currently unavailable.", inline=False)
+        else:
+            ranked_data = get_rank_data_by_steam_id(member_steam_id)
+            if ranked_data is not None:
+                rank = get_rank_from_row(ranked_data)
+                role_id = get_role_id_for_rank(member.guild.id, rank)
+                role: discord.Role | None = discord.utils.get(member.guild.roles, id=role_id) if role_id else None
+                embed.add_field(name="ELO", value=ranked_data.score, inline=False)
+                embed.add_field(name="Leaderboard Position", value=f"#{ranked_data.rank}", inline=False)
+
+                last_updated = _relative_discord_timestamp(last_updated_at())
+                if last_updated is not None:
+                    embed.add_field(name="Database last updated", value=last_updated, inline=False)
+
+                if role is not None:
+                    embed.color = role.color
 
     embed.set_thumbnail(url=member.display_avatar.url)
 
@@ -226,19 +251,28 @@ async def status(interaction: discord.Interaction):
     """Handles the /status command."""
 
     embed: discord.Embed = discord.Embed(
-        title="Leaderboard API Status",
+        title="Leaderboard API Status" if is_leaderboard_api_enabled() else "Steamboard Status",
         color=discord.Color.blurple(),
     )
-    embed.add_field(name="Base URL", value=Config.leaderboard_api_base_url, inline=False)
 
-    try:
-        health = await leaderboard_api.get_health_async()
-        embed.add_field(name="Service Status", value=str(health.get("status", "unknown")), inline=False)
-        embed.add_field(name="Authenticated", value=str(health.get("authenticated", False)), inline=False)
+    if is_leaderboard_api_enabled():
+        embed.add_field(name="Base URL", value=Config.leaderboard_api_base_url, inline=False)
+
+        try:
+            health = await leaderboard_api.get_health_async()
+            embed.add_field(name="Service Status", value=str(health.get("status", "unknown")), inline=False)
+            embed.add_field(name="Authenticated", value=str(health.get("authenticated", False)), inline=False)
+            embed.color = discord.Color.green()
+        except LeaderboardApiUnavailableError:
+            embed.add_field(name="Service Status", value="unavailable", inline=False)
+            embed.color = discord.Color.red()
+    else:
+        last_updated = last_updated_at()
+        if last_updated is not None:
+            embed.add_field(name="Last updated", value=f"<t:{int(last_updated)}:R>", inline=False)
+
+        embed.add_field(name="Number of Players", value=get_player_count(), inline=False)
         embed.color = discord.Color.green()
-    except LeaderboardApiUnavailableError:
-        embed.add_field(name="Service Status", value="unavailable", inline=False)
-        embed.color = discord.Color.red()
 
     await interaction.response.send_message(embed=embed, ephemeral=True)
 
