@@ -6,10 +6,9 @@ from typing import Any, Dict
 
 from sqlalchemy import select
 
-from ..config import Config
 from ..custom_logger import CustomLogger
-from ..db.cache.utils import get_player_count, last_updated_at
 from ..db.database import SQLAlchemySession
+from ..leaderboard_api import LeaderboardApiError, client as leaderboard_api
 
 logger = CustomLogger("health")
 
@@ -35,32 +34,22 @@ def check_database() -> Dict[str, Any]:
         return {"status": "error", "error": str(e)}
 
 
-def check_cache() -> Dict[str, Any]:
+def check_leaderboard_api() -> Dict[str, Any]:
     """
-    Check leaderboard cache status and staleness.
+    Check external leaderboard API availability.
 
     Returns:
-        dict with status ('ok', 'degraded', 'warning', 'error') and cache metrics
+        dict with status and remote service metrics
     """
     try:
-        player_count = get_player_count()
-        last_updated = last_updated_at()
-
-        if last_updated is None:
-            return {"status": "warning", "message": "Cache has never been updated"}
-
-        age_seconds = int(datetime.now(timezone.utc).timestamp()) - int(last_updated)
-        cache_stale = age_seconds > (Config.cache_update_interval * 2)
-
+        health = leaderboard_api.get_health()
         return {
-            "status": "degraded" if cache_stale else "ok",
-            "last_updated": datetime.fromtimestamp(last_updated, tz=timezone.utc).isoformat(),
-            "player_count": player_count,
-            "age_seconds": age_seconds,
-            "update_interval": Config.cache_update_interval,
+            "status": "ok",
+            "service_status": health.get("status", "unknown"),
+            "authenticated": health.get("authenticated", False),
         }
-    except Exception as e:
-        logger.error("Cache health check failed", error=str(e))
+    except LeaderboardApiError as e:
+        logger.error("Leaderboard API health check failed", error=str(e))
         return {"status": "error", "error": str(e)}
 
 
@@ -120,7 +109,7 @@ def get_health_status() -> Dict[str, Any]:
     # Run individual checks
     checks = {
         "database": check_database(),
-        "cache": check_cache(),
+        "leaderboard_api": check_leaderboard_api(),
         "discord_bot": check_discord_bot(),
     }
 

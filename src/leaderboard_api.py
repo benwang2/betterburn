@@ -106,5 +106,8 @@ class LeaderboardApiClient:
     async def create_mapping_async(self, steam_id: int | str) -> LeaderboardMapping:
         return await asyncio.to_thread(self.create_mapping, steam_id)
 
+    async def get_health_async(self) -> dict[str, Any]:
+        return await asyncio.to_thread(self.get_health)
+
 
 client = LeaderboardApiClient()
