@@ -59,27 +59,34 @@ def get_rank_data_by_steam_id(steam_id):
         db.close()
 
 
-def get_rank_from_row(row: LeaderboardRow) -> Rank:
+def get_rank_from_values(score: int, position: int) -> Rank:
     rank: Rank = Rank.Stone
-    if row:
-        if row.score >= 500 and row.score < 700:
-            rank = Rank.Bronze
-        elif row.score >= 700 and row.score < 900:
-            rank = Rank.Silver
-        elif row.score >= 900 and row.score < 1100:
-            rank = Rank.Gold
-        elif row.score >= 1100 and row.score < 1300:
-            rank = Rank.Platinum
-        elif row.score >= 1300 and row.score < 1500:
-            rank = Rank.Diamond
-        elif row.score >= 1500 and row.score < 1700:
-            rank = Rank.Master
-        elif row.score >= 1700:
-            rank = Rank.Grandmaster
-            if row.score >= 1800 and row.rank <= 100:
-                rank = Rank.Aetherean
+
+    if score >= 500 and score < 700:
+        rank = Rank.Bronze
+    elif score >= 700 and score < 900:
+        rank = Rank.Silver
+    elif score >= 900 and score < 1100:
+        rank = Rank.Gold
+    elif score >= 1100 and score < 1300:
+        rank = Rank.Platinum
+    elif score >= 1300 and score < 1500:
+        rank = Rank.Diamond
+    elif score >= 1500 and score < 1700:
+        rank = Rank.Master
+    elif score >= 1700:
+        rank = Rank.Grandmaster
+        if score >= 1800 and position <= 100:
+            rank = Rank.Aetherean
 
     return rank
+
+
+def get_rank_from_row(row: LeaderboardRow) -> Rank:
+    if row is None:
+        return Rank.Stone
+
+    return get_rank_from_values(row.score, row.rank)
 
 
 def bulk_insert_cache_from_list(leaderboard: list):
