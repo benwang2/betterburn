@@ -14,8 +14,7 @@ from ..config import Config
 from ..custom_logger import CustomLogger
 from ..db.discord.utils import link_user
 from ..db.session.utils import end_session, get_session, is_valid_session
-from ..leaderboard_api import LeaderboardApiError
-from ..leaderboard_api import is_leaderboard_api_enabled
+from ..leaderboard_api import LeaderboardApiError, is_leaderboard_api_enabled
 from ..leaderboard_api import client as leaderboard_api
 from .health import get_health_status
 

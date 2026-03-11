@@ -8,7 +8,13 @@ from ..api.utils import generate_link_url
 from ..bridge import create_linked_session
 from ..config import Config
 from ..custom_logger import CustomLogger as Logger
-from ..db.cache.utils import get_player_count, get_rank_data_by_steam_id, get_rank_from_row, get_rank_from_values, last_updated_at
+from ..db.cache.utils import (
+    get_player_count,
+    get_rank_data_by_steam_id,
+    get_rank_from_row,
+    get_rank_from_values,
+    last_updated_at,
+)
 from ..db.discord.utils import get_role_id_for_rank, get_steam_id, unlink_user
 from ..db.session.utils import create_or_extend_session, end_session
 from ..leaderboard_api import (

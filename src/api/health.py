@@ -9,8 +9,7 @@ from sqlalchemy import select
 from ..custom_logger import CustomLogger
 from ..db.cache.utils import get_player_count, last_updated_at
 from ..db.database import SQLAlchemySession
-from ..leaderboard_api import LeaderboardApiError
-from ..leaderboard_api import is_leaderboard_api_enabled
+from ..leaderboard_api import LeaderboardApiError, is_leaderboard_api_enabled
 from ..leaderboard_api import client as leaderboard_api
 
 logger = CustomLogger("health")
