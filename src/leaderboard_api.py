@@ -1,6 +1,7 @@
 import asyncio
 from dataclasses import dataclass
 from typing import Any
+from urllib.parse import urlencode
 from uuid import uuid4
 
 import requests
@@ -45,9 +46,10 @@ class LeaderboardMapping:
 
 
 class LeaderboardApiClient:
-    def __init__(self, base_url: str | None = None, timeout: int = 10):
+    def __init__(self, base_url: str | None = None, timeout: int = 10, api_key: str | None = None):
         resolved_base_url = base_url if base_url is not None else Config.leaderboard_api_base_url
         self.base_url = resolved_base_url.rstrip("/") if resolved_base_url else None
+        self.api_key = api_key if api_key is not None else Config.leaderboard_api_key
         self.timeout = timeout
         self.logger = Logger("leaderboard_api")
 
@@ -61,6 +63,14 @@ class LeaderboardApiClient:
 
         return f"{self.base_url}{path}"
 
+    def _build_headers(self, path: str) -> dict[str, str]:
+        headers = {"X-Request-ID": str(uuid4())}
+
+        if path != "/healthz" and self.api_key:
+            headers["Authorization"] = f"Bearer {self.api_key}"
+
+        return headers
+
     def _parse_json(self, response: requests.Response) -> dict[str, Any]:
         try:
             payload = response.json()
@@ -68,9 +78,18 @@ class LeaderboardApiClient:
         except ValueError:
             return {}
 
-    def _request(self, method: str, path: str, json: dict[str, Any] | None = None) -> dict[str, Any]:
+    def _request(
+        self,
+        method: str,
+        path: str,
+        json: dict[str, Any] | None = None,
+        params: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         url = self._build_url(path)
-        headers = {"X-Request-ID": str(uuid4())}
+        if params:
+            url = f"{url}?{urlencode(params)}"
+
+        headers = self._build_headers(path)
 
         try:
             response = requests.request(method=method, url=url, json=json, headers=headers, timeout=self.timeout)
@@ -96,7 +115,7 @@ class LeaderboardApiClient:
         return self._request("GET", "/healthz")
 
     def get_standing(self, steam_id: int | str) -> LeaderboardStanding:
-        payload = self._request("GET", f"/leaderboard/{steam_id}")
+        payload = self._request("GET", "/leaderboard", params={"sid": str(steam_id)})
         return LeaderboardStanding(
             steam_id=str(payload["steam_id"]),
             playfab_id=str(payload["playfab_id"]),

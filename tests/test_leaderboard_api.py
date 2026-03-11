@@ -21,7 +21,7 @@ class DummyResponse:
 def test_get_standing_returns_typed_result(monkeypatch):
     def fake_request(method, url, json=None, headers=None, timeout=None):
         assert method == "GET"
-        assert url == "http://leaderboard.test/leaderboard/76561198000000000"
+        assert url == "http://leaderboard.test/leaderboard/?sid=76561198000000000"
         assert json is None
         assert headers["X-Request-ID"]
         assert timeout == 10

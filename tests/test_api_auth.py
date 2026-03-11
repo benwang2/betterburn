@@ -73,7 +73,9 @@ async def test_auth_skips_mapping_when_api_disabled(monkeypatch):
     monkeypatch.setattr(api_module, "link_user", fake_link_user)
     monkeypatch.setattr(api_module.leaderboard_api, "create_mapping_async", fake_create_mapping_async)
     monkeypatch.setattr(api_module, "find_linked_session", lambda session_id: linked_session)
-    monkeypatch.setattr(api_module, "remove_linked_session_by_id", lambda session_id: calls.__setitem__("removed", session_id))
+    monkeypatch.setattr(
+        api_module, "remove_linked_session_by_id", lambda session_id: calls.__setitem__("removed", session_id)
+    )
     monkeypatch.setattr(api_module, "end_session", lambda session_id: calls.__setitem__("ended", session_id))
 
     response = await api_module.auth("session-123", SimpleNamespace(query_params={}))

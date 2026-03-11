@@ -16,6 +16,7 @@ class Config:
     api_url: str = os.environ.get("API_URL", "localhost")
     application_port: int = int(os.environ.get("APPLICATION_PORT", "80"))
     leaderboard_api_base_url: str | None = os.environ.get("LEADERBOARD_API_BASE_URL") or None
+    leaderboard_api_key: str | None = os.environ.get("LEADERBOARD_API_KEY") or None
     app_id: int = int(os.environ.get("APP_ID", "2217000"))
     leaderboard_id: int = int(os.environ.get("LEADERBOARD_ID", "16200142"))
     cache_update_interval: int = int(os.environ.get("CACHE_UPDATE_INTERVAL", "120"))
