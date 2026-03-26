@@ -1,5 +1,8 @@
-from datetime import datetime, timezone
-from typing import Callable, List
+from __future__ import annotations
+
+import threading
+from datetime import datetime, timedelta, timezone
+from typing import Callable
 
 from .config import Config
 from .custom_logger import logger
@@ -24,38 +27,51 @@ class LinkedSession:
         await self.handler(*args, **kwargs)
 
 
-sessions: List[LinkedSession] = []
+_lock = threading.Lock()
+_sessions_by_id: dict[str, LinkedSession] = {}
 
 
-def find_linked_session(session_id) -> LinkedSession | None:
-    for sess in sessions:
-        if sess.session_id == session_id:
-            return sess
-
-    return None
+def find_linked_session(session_id: str) -> LinkedSession | None:
+    with _lock:
+        return _sessions_by_id.get(session_id)
 
 
 def create_linked_session(session_id: str, discord_id: str) -> LinkedSession:
     sess = LinkedSession(session_id=session_id, discord_id=discord_id)
-    sessions.append(sess)
+    with _lock:
+        _sessions_by_id[session_id] = sess
     logger.debug("Created linked session", session_id=session_id, discord_id=discord_id)
     return sess
 
 
 def remove_linked_session_by_id(session_id: str):
-    for sess in sessions:
-        if sess.session_id == session_id:
-            sessions.remove(sess)
-            break
+    with _lock:
+        _sessions_by_id.pop(session_id, None)
 
 
 def cull_expired_linked_sessions() -> int:
-    sessions_to_cull = [sess for sess in sessions if (datetime.now(timezone.utc) - sess.created_at).seconds > 60]
-    for sess in sessions_to_cull:
-        sessions.remove(sess)
-    if len(sessions_to_cull) > 0:
-        logger.debug("Culled expired linked sessions", count=len(sessions_to_cull))
-    return len(sessions_to_cull)
+    now = datetime.now(timezone.utc)
+
+    # Default: keep the in-memory bridge session alive roughly as long as the
+    # underlying DB session duration. Ensure we also respect the view timeout.
+    ttl_seconds = max(60, int(getattr(Config, "session_duration", 60)))
+    cutoff = now - timedelta(seconds=ttl_seconds)
+
+    with _lock:
+        expired_ids = [sid for sid, sess in _sessions_by_id.items() if sess.created_at < cutoff]
+        for sid in expired_ids:
+            _sessions_by_id.pop(sid, None)
+
+    if expired_ids:
+        logger.debug("Culled expired linked sessions", count=len(expired_ids))
+    return len(expired_ids)
+
+
+def count_linked_sessions() -> int:
+    """Return current number of active in-memory linked sessions."""
+
+    with _lock:
+        return len(_sessions_by_id)
 
 
 def set_ext_api_url(api_url: str):
