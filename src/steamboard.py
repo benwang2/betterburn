@@ -124,11 +124,21 @@ class SteamLeaderboard:
         return self.__data__.items()
 
 
-leaderboard = SteamLeaderboard(Config.app_id, Config.leaderboard_id, False)
-leaderboard.update()
+def get_default_leaderboard() -> "SteamLeaderboard":
+    """Create a SteamLeaderboard from configured app/leaderboard IDs.
+
+    Important: This function has no side effects (no network calls). Call
+    :meth:`SteamLeaderboard.update` explicitly where appropriate (e.g. in
+    background tasks).
+    """
+
+    return SteamLeaderboard(Config.app_id, Config.leaderboard_id, api_key=None)
+
 
 if __name__ == "__main__":
-    board = SteamLeaderboard(2217000, 14800950, False)
+    # Simple CLI utility: fetch leaderboard and dump to CSV.
+    # NOTE: requires an API key if persona lookups are enabled.
+    board = get_default_leaderboard()
     board.update()
 
     with open("./data.csv", "w", newline="") as f:
