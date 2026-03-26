@@ -147,9 +147,9 @@ def clear_cache_table():
 def last_updated_at():
     db = SQLAlchemySession()
     try:
-    # Since update_metadata() clears the table first, we expect a single row.
-    metadata = db.query(Metadata).first()
-    return metadata.updated if metadata else None
+        # Since update_metadata() clears the table first, we expect a single row.
+        metadata = db.query(Metadata).first()
+        return metadata.updated if metadata else None
     finally:
         db.close()
 
@@ -157,7 +157,7 @@ def last_updated_at():
 def get_player_count():
     db = SQLAlchemySession()
     try:
-    metadata = db.query(Metadata).first()
-    return metadata.player_count if metadata else None
+        metadata = db.query(Metadata).first()
+        return metadata.player_count if metadata else None
     finally:
         db.close()
