@@ -87,6 +87,9 @@ class LeaderboardApiClient:
     ) -> dict[str, Any]:
         url = self._build_url(path)
         if params:
+            # Keep a trailing slash before the query-string to match the API contract/tests.
+            if not url.endswith("/"):
+                url = f"{url}/"
             url = f"{url}?{urlencode(params)}"
 
         headers = self._build_headers(path)
