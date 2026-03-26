@@ -308,7 +308,7 @@ async def on_ready():
 
     await client.tree.sync()
 
-    print(f"Logged in as {client.user}")
+    logger.info("Discord bot logged in", user=str(client.user))
 
 
 async def start_bot():

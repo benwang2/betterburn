@@ -94,16 +94,3 @@ async def unlink_user(user_id):
         return user
 
     return None
-
-
-# Example usage
-if __name__ == "__main__":
-    guild_id = 297229405552377856
-    role_dict = get_roles_for_guild(297229405552377856)
-    print(role_dict)
-    # user_id = 76561197995460378  # Replace with the actual user_id
-    # steam_id = get_steam_id(user_id)
-    # if steam_id:
-    #     print(f"Steam ID for user {user_id} is {steam_id}")
-    # else:
-    #     print(f"No Steam ID found for user {user_id}")
