@@ -9,33 +9,6 @@ from .models import LeaderboardRow, Metadata
 logger = CustomLogger("cache_utils")
 
 
-# Insert example data into the cache table
-def _insert_example_data():
-    db = SQLAlchemySession()
-    try:
-        cache_entries = [
-            LeaderboardRow(steam_id=12345, score=100, rank=1),
-            LeaderboardRow(steam_id=67890, score=200, rank=2),
-        ]
-        db.add_all(cache_entries)
-        db.commit()
-    finally:
-        db.close()
-
-
-# Query example data from the cache table
-def _query_example_data():
-    db = SQLAlchemySession()
-    try:
-        cache_data = db.query(LeaderboardRow).all()
-        print("Cache Table:")
-        for entry in cache_data[:10]:
-            print(f"Steam ID: {entry.steam_id}, Score: {entry.score}, Rank: {entry.rank}")
-        print("...")
-    finally:
-        db.close()
-
-
 def update_metadata(num_rows):
     db = SQLAlchemySession()
 
@@ -100,7 +73,6 @@ def bulk_insert_cache_from_list(leaderboard: list):
         leaderboard (List<Dict>)
     """
     db = SQLAlchemySession()
-    # print("Hi", file_path)
     try:
         records = []
 
@@ -108,7 +80,6 @@ def bulk_insert_cache_from_list(leaderboard: list):
             steam_id = int(steam_id)
             score = int(data.get("score"))
             rank = int(data.get("rank"))
-            # print(steam_id, score, rank)
             records.append(LeaderboardRow(steam_id=steam_id, score=score, rank=rank))
 
         # Bulk insert using SQLAlchemy
@@ -135,18 +106,15 @@ def bulk_insert_cache_from_file(file_path):
         file_path (str): Path to the input CSV file.
     """
     db = SQLAlchemySession()
-    # print("Hi", file_path)
     try:
         records = []
         with open(file_path, "r") as file:
-            # print(file.readline())
             reader = csv.DictReader(file)  # Automatically uses headers as keys
             for _, row in enumerate(reader, start=1):  # Start rank at 1
                 # Parse and create a LeaderboardRow object
                 steam_id = int(row.get("steam_id"))
                 score = int(row.get("score"))
                 rank = int(row.get("rank"))
-                # print(steam_id, score, rank)
                 records.append(LeaderboardRow(steam_id=steam_id, score=score, rank=rank))
 
         # Bulk insert using SQLAlchemy
@@ -179,8 +147,8 @@ def clear_cache_table():
 def last_updated_at():
     db = SQLAlchemySession()
     try:
-        metadata = db.query(Metadata).order_by(Metadata.updated.desc()).first()
-        logger.info(f"Last updated metadata: {metadata}")
+    # Since update_metadata() clears the table first, we expect a single row.
+    metadata = db.query(Metadata).first()
         return metadata.updated if metadata else None
     finally:
         db.close()
@@ -189,7 +157,7 @@ def last_updated_at():
 def get_player_count():
     db = SQLAlchemySession()
     try:
-        metadata = db.query(Metadata).order_by(Metadata.player_count.desc()).first()
+    metadata = db.query(Metadata).first()
         return metadata.player_count if metadata else None
     finally:
         db.close()
