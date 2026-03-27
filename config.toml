@@ -1,8 +1,0 @@
-api_url = "localhost"
-application_port = 80
-app_id = 2217000
-leaderboard_id = 16200142
-cache_update_interval = 120
-session_duration = 300
-discord_token = ""
-test_guild = []
