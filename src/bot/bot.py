@@ -292,7 +292,7 @@ async def on_ready():
             server = client.get_guild(guild_id)
             client_mbr = server.get_member(client.user.id)
             logger.info(f"Betterburn joined <name={server.name} id={guild_id}> on {client_mbr.joined_at}")
-            await server.leave()
+            # await server.leave()
 
     await client.add_cog(MaidCog(client))
     await client.add_cog(RoleCog(client))
