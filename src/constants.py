@@ -29,6 +29,7 @@ class Colors(Enum):
 class RoleDoctorOption(Enum):
     check = 0
     test = 1
+    auto = 2
 
 
 class GuildRoles(TypedDict):

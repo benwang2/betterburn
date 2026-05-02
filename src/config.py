@@ -25,6 +25,10 @@ class Config:
     database_url: str = os.environ.get("DATABASE_URL", "sqlite:///betterburn.db")
     # Comma-separated guild IDs, e.g. TEST_GUILD=123456789,987654321
     test_guild: list[int] = _parse_int_list(os.environ.get("TEST_GUILD", ""))
+    # Optional: a single Discord user ID who is allowed to run privileged commands (e.g. roledoctor)
+    role_doctor_user_id: int | None = (
+        int(os.environ["ROLE_DOCTOR_USER_ID"]) if os.environ.get("ROLE_DOCTOR_USER_ID") else None
+    )
 
     def __str__(self) -> str:
         return (
