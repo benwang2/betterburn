@@ -40,7 +40,7 @@ async def link(sessionId: Union[str, None] = None):
         logger.warning("Invalid session ID provided", session_id=sessionId)
         raise HTTPException(status_code=400, detail="Session id is invalid")
 
-    logger.info("Redirecting to Steam OpenID", session_id=sessionId)
+    logger.debug("Redirecting to Steam OpenID", session_id=sessionId)
     steamLogin = SteamSignIn()
     redirect_url = f"https://{get_ext_api_url()}/api/auth"
     if sessionId:

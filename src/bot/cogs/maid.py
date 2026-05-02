@@ -30,8 +30,8 @@ class MaidCog(commands.Cog, name="MaidCog"):
     async def cull(self):
         culled_linking_sessions = bridge.cull_expired_linked_sessions()
         culled_sessions = session_utils.cull_expired_sessions()
-        self.logger.info(f"Culled {culled_linking_sessions} linked sessions.")
-        self.logger.info(f"Culled {culled_sessions} sessions.")
+        self.logger.debug(f"Culled {culled_linking_sessions} linked sessions.")
+        self.logger.debug(f"Culled {culled_sessions} sessions.")
 
     @tasks.loop(seconds=Config.cache_update_interval)
     async def update_cache(self):
@@ -44,4 +44,4 @@ class MaidCog(commands.Cog, name="MaidCog"):
         cache_utils.bulk_insert_cache_from_list(self.leaderboard.to_list())
         cache_utils.update_metadata(len(self.leaderboard))
 
-        self.logger.info("Updated database cache.")
+        self.logger.debug("Updated database cache.")

@@ -78,7 +78,7 @@ class SteamLeaderboard:
                     else:
                         break
 
-            self.logger.info("Took " + str(time.time() - t_start) + " seconds to get all leaderboard entries.")
+            self.logger.debug("Took " + str(time.time() - t_start) + " seconds to get all leaderboard entries.")
             t_start = time.time()
             steam_ids = []
             # Add data into an OrderedDict and get Steam display names
@@ -88,7 +88,7 @@ class SteamLeaderboard:
                 data[elmt.text] = {"rank": str(i + 1), "score": xml[1][i].text}
 
             t_end = time.time()
-            self.logger.info(
+            self.logger.debug(
                 f"Took {str(t_end - t_start)} seconds to get personas for all users. avg:"
                 + str((t_end - t_start) / (len(xml[0]) / 100))
                 + "s per 100 users."
@@ -100,12 +100,12 @@ class SteamLeaderboard:
                 if personas.get(key):
                     data[key]["persona"] = personas[key]
 
-            self.logger.info("Took " + str(time.time() - t_start) + " seconds to combine data sets.")
+            self.logger.debug("Took " + str(time.time() - t_start) + " seconds to combine data sets.")
 
             self.__data__ = data
             return data
         except Exception as e:
-            self.logger.info(str(e))
+            self.logger.debug(str(e))
 
     def to_csv(self, csvfile):
         fieldnames = ["rank", "steam_id", "score"]

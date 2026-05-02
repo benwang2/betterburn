@@ -86,11 +86,12 @@ async def link(interaction: discord.Interaction):
 
             await message.edit(embed=embed, view=None)
         except Exception as e:
-            logger.error(str(e))
+            logger.error(f'Failed to link Steam account for <name="{interaction.user.name}" id={discord_id}>: {e}')
 
     async def event(*args, **kwargs):
         client.loop.create_task(handler(*args, **kwargs))
 
+    logger.info("Created linking session", session_id=session_id, discord_id=discord_id)
     linked_session = create_linked_session(session_id=session_id, discord_id=discord_id)
     linked_session.setEventHandler(event)
 

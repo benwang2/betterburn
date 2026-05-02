@@ -123,7 +123,7 @@ def bulk_insert_cache_from_file(file_path):
 
         db.bulk_save_objects(records)
         db.commit()
-        logger.info(f"Successfully inserted {len(records)} records into the 'cache' table.")
+        logger.debug(f"Successfully inserted {len(records)} records into the 'cache' table.")
     except Exception as e:
         db.rollback()
         logger.error(f"Error occurred during bulk insert: {e}")
@@ -136,7 +136,7 @@ def clear_cache_table():
     try:
         db.query(LeaderboardRow).delete()
         db.commit()
-        logger.info("Cache table cleared successfully.")
+        logger.debug("Cache table cleared successfully.")
     except Exception as e:
         db.rollback()
         logger.error(f"Error occurred while clearing cache table: {e}")
