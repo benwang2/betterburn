@@ -13,7 +13,6 @@ from ..bridge import (
 from ..config import Config
 from ..custom_logger import CustomLogger
 from ..db.discord.utils import link_user
-from ..db.session.utils import end_session, get_session, is_valid_session
 from ..leaderboard_api import LeaderboardApiError, is_leaderboard_api_enabled
 from ..leaderboard_api import client as leaderboard_api
 from .health import get_health_status
@@ -36,11 +35,13 @@ async def link(sessionId: Union[str, None] = None):
         logger.warning("Link request without session ID")
         raise HTTPException(status_code=400, detail="No session id was provided")
 
-    if not is_valid_session(session_id=sessionId):
+    linked_session = find_linked_session(session_id=sessionId)
+
+    if linked_session is None:
         logger.warning("Invalid session ID provided", session_id=sessionId)
         raise HTTPException(status_code=400, detail="Session id is invalid")
 
-    logger.debug("Redirecting to Steam OpenID", session_id=sessionId)
+    logger.debug("Redirecting to Steam OpenID", session_id=sessionId, discord_id=linked_session.discord_id)
     steamLogin = SteamSignIn()
     redirect_url = f"https://{get_ext_api_url()}/api/auth"
     if sessionId:
@@ -56,17 +57,17 @@ async def auth(sessionId: str, request: Request):
         logger.warning("Auth callback without session ID")
         raise HTTPException(status_code=400, detail="No session id was provided")
 
-    session = get_session(session_id=sessionId)
+    linked_session = find_linked_session(session_id=sessionId)
 
-    if session is None:
+    if linked_session is None:
         logger.warning("Auth callback with invalid session", session_id=sessionId)
         raise HTTPException(status_code=400, detail="Session id is invalid")
 
     steamLogin = SteamSignIn()
     steamID = steamLogin.ValidateResults(request.query_params)
 
-    logger.info("Steam authentication successful", discord_id=session.discord_id, steam_id=steamID)
-    await link_user(user_id=session.discord_id, steam_id=steamID)
+    logger.info("Steam authentication successful", discord_id=linked_session.discord_id, steam_id=steamID)
+    await link_user(user_id=linked_session.discord_id, steam_id=steamID)
 
     mapping_message = None
 
@@ -75,7 +76,7 @@ async def auth(sessionId: str, request: Request):
             mapping = await leaderboard_api.create_mapping_async(steamID)
             logger.info(
                 "Created leaderboard mapping",
-                discord_id=session.discord_id,
+                discord_id=linked_session.discord_id,
                 steam_id=mapping.steam_id,
                 playfab_id=mapping.playfab_id,
             )
@@ -86,19 +87,14 @@ async def auth(sessionId: str, request: Request):
             )
             logger.warning(
                 "Failed to create leaderboard mapping after link",
-                discord_id=session.discord_id,
+                discord_id=linked_session.discord_id,
                 steam_id=steamID,
                 error=str(exc),
             )
 
-    linked_session = find_linked_session(session_id=sessionId)
-
-    if linked_session:
-        logger.debug("Firing linked session event", session_id=linked_session.session_id)
-        await linked_session.event(steamID, mapping_message=mapping_message)
-        remove_linked_session_by_id(linked_session.session_id)
-
-    end_session(session_id=sessionId)
+    logger.debug("Firing linked session event", session_id=linked_session.session_id)
+    await linked_session.event(steamID, mapping_message=mapping_message)
+    remove_linked_session_by_id(linked_session.session_id)
 
     if mapping_message:
         return HTMLResponse(f"Authenticated - you may now close this window. {mapping_message}")

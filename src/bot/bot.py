@@ -1,11 +1,12 @@
 from datetime import datetime
+from uuid import uuid4
 
 import discord
 from discord import app_commands
 from discord.ext.commands import Bot
 
 from ..api.utils import generate_link_url
-from ..bridge import create_linked_session
+from ..bridge import create_linked_session, remove_linked_session_by_id
 from ..config import Config
 from ..custom_logger import CustomLogger as Logger
 from ..db.cache.utils import (
@@ -16,7 +17,6 @@ from ..db.cache.utils import (
     last_updated_at,
 )
 from ..db.discord.utils import get_role_id_for_rank, get_steam_id, unlink_user
-from ..db.session.utils import create_or_extend_session, end_session
 from ..leaderboard_api import (
     LeaderboardApiBadRequestError,
     LeaderboardApiNotFoundError,
@@ -59,14 +59,16 @@ def _relative_discord_timestamp(timestamp: str | int | float | None) -> str | No
 )
 async def link(interaction: discord.Interaction):
     discord_id = interaction.user.id
-    session_id = create_or_extend_session(discord_id)
+    session_id = str(uuid4())
+    logger.info("Created linking session", session_id=session_id, discord_id=discord_id)
+    linked_session = create_linked_session(session_id=session_id, discord_id=discord_id)
     link_url = generate_link_url(session_id)
     embed = discord.Embed(
         title="Link your steam account.",
         description="Click the 'Authenticate' button below to link your account.",
         color=discord.Color.blue(),
     )
-    view = LinkView(link_url=link_url, on_cancel=lambda: end_session(session_id))
+    view = LinkView(link_url=link_url, on_cancel=lambda: remove_linked_session_by_id(linked_session.session_id))
     await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
 
     async def handler(steam_id, mapping_message: str | None = None):
@@ -91,8 +93,6 @@ async def link(interaction: discord.Interaction):
     async def event(*args, **kwargs):
         client.loop.create_task(handler(*args, **kwargs))
 
-    logger.info("Created linking session", session_id=session_id, discord_id=discord_id)
-    linked_session = create_linked_session(session_id=session_id, discord_id=discord_id)
     linked_session.setEventHandler(event)
 
 

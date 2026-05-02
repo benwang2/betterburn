@@ -4,7 +4,6 @@ from ... import bridge
 from ...config import Config
 from ...custom_logger import CustomLogger as Logger
 from ...db.cache import utils as cache_utils
-from ...db.session import utils as session_utils
 from ...leaderboard_api import is_leaderboard_api_enabled
 
 
@@ -29,9 +28,7 @@ class MaidCog(commands.Cog, name="MaidCog"):
     @tasks.loop(seconds=Config.session_duration)
     async def cull(self):
         culled_linking_sessions = bridge.cull_expired_linked_sessions()
-        culled_sessions = session_utils.cull_expired_sessions()
         self.logger.debug(f"Culled {culled_linking_sessions} linked sessions.")
-        self.logger.debug(f"Culled {culled_sessions} sessions.")
 
     @tasks.loop(seconds=Config.cache_update_interval)
     async def update_cache(self):

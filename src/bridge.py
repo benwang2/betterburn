@@ -11,11 +11,11 @@ from .custom_logger import logger
 class LinkedSession:
     created_at: datetime
     session_id: str
-    discord_id: str
+    discord_id: int
 
     handler: Callable
 
-    def __init__(self, session_id: str, discord_id: str):
+    def __init__(self, session_id: str, discord_id: int):
         self.created_at = datetime.now(timezone.utc)
         self.session_id = session_id
         self.discord_id = discord_id
@@ -36,7 +36,7 @@ def find_linked_session(session_id: str) -> LinkedSession | None:
         return _sessions_by_id.get(session_id)
 
 
-def create_linked_session(session_id: str, discord_id: str) -> LinkedSession:
+def create_linked_session(session_id: str, discord_id: int) -> LinkedSession:
     sess = LinkedSession(session_id=session_id, discord_id=discord_id)
     with _lock:
         _sessions_by_id[session_id] = sess

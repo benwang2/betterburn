@@ -65,27 +65,26 @@ sequenceDiagram
 	participant Bot as Betterburn Bot
 	participant API as Betterburn API (FastAPI)
 	participant Steam as Steam OpenID
-	participant DB as SQLite
 	participant Bridge as In-memory bridge
 
 	User->>Discord: /link
 	Discord->>Bot: interaction
-	Bot->>DB: create/extend auth session
+	Bot->>Bridge: create linking session
 	Bot-->>User: ephemeral message + Authenticate button
 
 	User->>API: GET /api/link?sessionId=...
+	API->>Bridge: validate linking session
 	API->>Steam: redirect to OpenID login
 	Steam-->>API: redirect back to /api/auth
-	API->>DB: persist Discord↔Steam link
-	API->>Bridge: find session + fire event
+	API->>Bridge: resolve Discord ID + fire event
 	Bot-->>User: edits original message (linked)
 ```
 
 1. User runs `/link`.
-2. Bot creates a short-lived auth session and returns a link button.
+2. Bot creates a short-lived in-memory linking session and returns a link button.
 3. FastAPI redirects the user to Steam OpenID.
 4. Steam redirects back to `/api/auth`.
-5. FastAPI validates the OpenID response, persists the link, and signals the bot (via `src/bridge.py`).
+5. FastAPI validates the OpenID response, persists the link, and signals the bot through the IPC bridge.
 
 ### Leaderboard data sources
 

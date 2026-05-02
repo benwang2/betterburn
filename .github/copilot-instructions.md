@@ -7,10 +7,10 @@ Betterburn is a **rank verification bot** for Steam game app `2217000`. It links
 **Two services run in one process** (`src/main.py`): a **discord.py Bot** on the main thread and a **FastAPI server** on a background thread. They communicate through `src/bridge.py`, an in-memory session store that bridges the Steam OpenID callback (FastAPI) back to the Discord interaction that initiated it.
 
 ### Data Flow: Account Linking
-1. User runs `/link` → bot creates a DB session + in-memory `LinkedSession` with an event handler
+1. User runs `/link` → bot creates an in-memory `LinkedSession` with an event handler
 2. Bot sends a button linking to `FastAPI /api/link?sessionId=...`
 3. FastAPI redirects to Steam OpenID, then handles callback at `/api/auth`
-4. `/api/auth` validates, calls `bridge.find_linked_session()`, fires the event handler back on the bot's event loop
+4. `/api/auth` validates the bridge session, fires the event handler back on the bot's event loop
 5. Bot edits the original Discord message to confirm the link
 
 ### Database Layout (`src/db/`)
