@@ -31,7 +31,7 @@ All DB access uses `SQLAlchemySession()` from `src/db/database.py` (SQLite, file
 - **Python env**: `.venv` virtualenv, dependencies in `pyproject.toml`
 - **Linter**: `ruff` with 120-char line length, auto-fix enabled
 - **Tests**: `pytest` + `pytest-asyncio` — run with `pytest` from project root. Tests use `monkeypatch` to stub `SQLAlchemySession` with dummy objects (see `tests/test_discord_utils.py` for the pattern)
-- **Config**: `config.toml` at project root, loaded at import-time by `src/config.py` into the `Config` class (static attributes)
+- **Config**: `.env` at project root (optional) loaded at import-time by `src/config.py` via `python-dotenv` into the `Config` class (static attributes). All config is via environment variables.
 
 ## Conventions
 
