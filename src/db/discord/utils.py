@@ -1,4 +1,6 @@
-from typing import Union
+from typing import Any, Union
+
+import discord
 
 from ...constants import GuildRoles, Rank
 from ...signals import onUserLinked, onUserUnlinked
@@ -61,6 +63,65 @@ def get_guild_ids_for_user(user_id) -> Union[list[int], None]:
 
     memberships = db.query(MembershipTable).filter_by(user_id=user_id).all()
     return [membership.guild_id for membership in memberships]
+
+
+async def sync_user_memberships(user_id: int, bot: Any) -> dict[str, list[int]]:
+    db = SQLAlchemySession()
+
+    removed_guild_ids: list[int] = []
+    created_guild_ids: list[int] = []
+    synced_guild_ids: list[int] = []
+
+    try:
+        memberships = db.query(MembershipTable).filter_by(user_id=user_id).all()
+        membership_guild_ids = {membership.guild_id for membership in memberships}
+
+        for membership in memberships:
+            guild = bot.get_guild(membership.guild_id)
+            if guild is None:
+                removed_guild_ids.append(membership.guild_id)
+                db.delete(membership)
+                continue
+
+            member = guild.get_member(user_id)
+            if member is None:
+                try:
+                    member = await guild.fetch_member(user_id)
+                except (discord.Forbidden, discord.HTTPException, discord.NotFound):
+                    member = None
+
+            if member is not None:
+                synced_guild_ids.append(guild.id)
+
+        for guild in bot.guilds:
+            if guild.id in membership_guild_ids:
+                continue
+
+            member = guild.get_member(user_id)
+            if member is None:
+                try:
+                    member = await guild.fetch_member(user_id)
+                except (discord.Forbidden, discord.HTTPException, discord.NotFound):
+                    member = None
+
+            if member is None:
+                continue
+
+            db.add(MembershipTable(user_id=user_id, guild_id=guild.id))
+            created_guild_ids.append(guild.id)
+            synced_guild_ids.append(guild.id)
+
+        db.commit()
+
+        return {
+            "removed_guild_ids": removed_guild_ids,
+            "created_guild_ids": created_guild_ids,
+            "synced_guild_ids": synced_guild_ids,
+        }
+    finally:
+        close = getattr(db, "close", None)
+        if callable(close):
+            close()
 
 
 def get_users_iter():

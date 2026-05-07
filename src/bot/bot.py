@@ -16,7 +16,7 @@ from ..db.cache.utils import (
     get_rank_from_values,
     last_updated_at,
 )
-from ..db.discord.utils import get_role_id_for_rank, get_steam_id, unlink_user
+from ..db.discord.utils import get_role_id_for_rank, get_steam_id, sync_user_memberships, unlink_user
 from ..leaderboard_api import (
     LeaderboardApiBadRequestError,
     LeaderboardApiNotFoundError,
@@ -52,6 +52,30 @@ def _relative_discord_timestamp(timestamp: str | int | float | None) -> str | No
         return None
 
 
+async def _assign_roles_for_guild_ids(user_id: int, guild_ids: list[int], *, skip_guild_id: int | None = None) -> None:
+    role_cog: RoleCog | None = client.get_cog("RoleCog")
+    if role_cog is None:
+        return
+
+    for guild_id in guild_ids:
+        if skip_guild_id is not None and guild_id == skip_guild_id:
+            continue
+
+        guild = client.get_guild(guild_id)
+        if guild is None:
+            continue
+
+        member = guild.get_member(user_id)
+        if member is None:
+            try:
+                member = await guild.fetch_member(user_id)
+            except (discord.Forbidden, discord.HTTPException, discord.NotFound):
+                member = None
+
+        if member is not None:
+            await role_cog.assign_roles(member)
+
+
 @client.tree.command(
     name="link",
     description="Link your Discord account to a Steam account.",
@@ -75,6 +99,15 @@ async def link(interaction: discord.Interaction):
         try:
             message = await interaction.original_response()
             logger.info(f'Linked Discord user <name="{interaction.user.name}" id={discord_id}> to SteamID = {steam_id}')
+
+            sync_result = await sync_user_memberships(discord_id, client)
+            if sync_result["removed_guild_ids"] or sync_result["created_guild_ids"]:
+                logger.info(
+                    "Synced Discord memberships after linking",
+                    discord_id=discord_id,
+                    removed_guild_ids=sync_result["removed_guild_ids"],
+                    created_guild_ids=sync_result["created_guild_ids"],
+                )
 
             description = f"Your account was linked to SteamID: {steam_id}"
             if mapping_message:
@@ -144,6 +177,16 @@ async def verify(
     embed: discord.Embed = None
 
     if get_steam_id(interaction.user.id) is not None:
+        if interaction.client is not None:
+            sync_result = await sync_user_memberships(interaction.user.id, interaction.client)
+            if sync_result["removed_guild_ids"] or sync_result["created_guild_ids"]:
+                logger.debug(
+                    "Synced Discord memberships during verification",
+                    discord_id=interaction.user.id,
+                    removed_guild_ids=sync_result["removed_guild_ids"],
+                    created_guild_ids=sync_result["created_guild_ids"],
+                )
+
         role_cog: RoleCog = client.get_cog("RoleCog")
         (succ, message) = await role_cog.assign_roles(interaction.user)
         if succ:

@@ -21,11 +21,54 @@ class DummyMembership:
         self.guild_id = guild_id
 
 
+class DummyGuild:
+    def __init__(self, guild_id, member=None):
+        self.id = guild_id
+        self._member = member
+        self.fetch_called = False
+
+    def get_member(self, user_id):
+        return self._member if self._member and self._member.id == user_id else None
+
+    async def fetch_member(self, user_id):
+        self.fetch_called = True
+        if self._member and self._member.id == user_id:
+            return self._member
+        return None
+
+
+class DummyBot:
+    def __init__(self, guilds):
+        self.guilds = guilds
+
+    def get_guild(self, guild_id):
+        for guild in self.guilds:
+            if guild.id == guild_id:
+                return guild
+        return None
+
+
+class DummyMember:
+    def __init__(self, member_id, guild_id):
+        self.id = member_id
+        self.guild = DummyGuild(guild_id, self)
+        self.roles = []
+        self.name = "Ben"
+        self.added_roles = []
+        self.removed_roles = []
+
+    async def add_roles(self, *roles):
+        self.added_roles.extend(roles)
+
+    async def remove_roles(self, *roles):
+        self.removed_roles.extend(roles)
+
+
 class DummyDB:
     def __init__(self, roles=None, user=None, memberships=None):
-        self._roles = roles or [DummyRole()]
-        self._user = user or DummyUser()
-        self._memberships = memberships or [DummyMembership()]
+        self._roles = [DummyRole()] if roles is None else roles
+        self._user = DummyUser() if user is None else user
+        self._memberships = [DummyMembership()] if memberships is None else memberships
         self.committed = False
         self.added = None
         self.deleted = None
@@ -146,3 +189,117 @@ def test_get_guild_ids_for_user():
     assert len(result) == 2, "Expected two guild IDs for the user, got: {}".format(result)
     assert 456 in result, "Expected guild ID 456 to be in the list"
     assert 789 in result, "Expected guild ID 789 to be in the list"
+
+
+@pytest.mark.asyncio
+async def test_sync_user_memberships_removes_stale_and_creates_missing(monkeypatch):
+    roles = [DummyRole(role_id=999)]
+    user = DummyUser(user_id=123, steam_id=1337)
+    memberships = [DummyMembership(user_id=123, guild_id=456), DummyMembership(user_id=123, guild_id=999)]
+
+    class SyncDB(DummyDB):
+        def query(self, model):
+            db = self
+
+            class DummyQuery:
+                def filter_by(self, **kwargs):
+                    if model.__name__ == "RoleTable":
+
+                        class DummyAll:
+                            def all(inner_self):
+                                return db._roles
+
+                            def first(inner_self):
+                                return db._roles[0] if db._roles else None
+
+                        return DummyAll()
+                    if model.__name__ == "UserTable":
+
+                        class DummyUserQ:
+                            def all(inner_self):
+                                return [db._user] if db._user else []
+
+                            def first(inner_self):
+                                return db._user
+
+                        return DummyUserQ()
+                    if model.__name__ == "MembershipTable":
+
+                        class DummyMembershipQ:
+                            def all(inner_self):
+                                return db._memberships
+
+                        return DummyMembershipQ()
+
+                def all(self):
+                    return []
+
+            return DummyQuery()
+
+    monkeypatch.setattr(utils, "SQLAlchemySession", lambda: SyncDB(roles, user, memberships))
+
+    existing_member = DummyMember(123, 456)
+    created_member = DummyMember(123, 789)
+    bot = DummyBot([DummyGuild(456, existing_member), DummyGuild(789, created_member), DummyGuild(321, None)])
+
+    result = await utils.sync_user_memberships(123, bot)
+
+    assert result["removed_guild_ids"] == [999]
+    assert result["created_guild_ids"] == [789]
+    assert sorted(result["synced_guild_ids"]) == [456, 789]
+
+
+@pytest.mark.asyncio
+async def test_sync_user_memberships_skips_missing_guild_members(monkeypatch):
+    roles = [DummyRole(role_id=999)]
+    user = DummyUser(user_id=123, steam_id=1337)
+    memberships = []
+
+    class SyncDB(DummyDB):
+        def query(self, model):
+            db = self
+
+            class DummyQuery:
+                def filter_by(self, **kwargs):
+                    if model.__name__ == "MembershipTable":
+
+                        class DummyMembershipQ:
+                            def all(inner_self):
+                                return db._memberships
+
+                        return DummyMembershipQ()
+                    if model.__name__ == "UserTable":
+
+                        class DummyUserQ:
+                            def all(inner_self):
+                                return [db._user] if db._user else []
+
+                            def first(inner_self):
+                                return db._user
+
+                        return DummyUserQ()
+                    if model.__name__ == "RoleTable":
+
+                        class DummyAll:
+                            def all(inner_self):
+                                return db._roles
+
+                            def first(inner_self):
+                                return db._roles[0] if db._roles else None
+
+                        return DummyAll()
+
+                def all(self):
+                    return []
+
+            return DummyQuery()
+
+    monkeypatch.setattr(utils, "SQLAlchemySession", lambda: SyncDB(roles, user, memberships))
+
+    bot = DummyBot([DummyGuild(456, None)])
+
+    result = await utils.sync_user_memberships(123, bot)
+
+    assert result["removed_guild_ids"] == []
+    assert result["created_guild_ids"] == []
+    assert result["synced_guild_ids"] == []
