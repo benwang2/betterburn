@@ -1,4 +1,3 @@
-from datetime import datetime
 from uuid import uuid4
 
 import discord
@@ -28,6 +27,7 @@ from ..leaderboard_api import (
 )
 from .cogs.maid import MaidCog
 from .cogs.roles import RoleAssignmentResult, RoleCog
+from .utils import perform_verification, relative_discord_timestamp
 from .views import LinkView, UnlinkView
 
 TOKEN = Config.discord_token
@@ -36,97 +36,6 @@ intents = discord.Intents.default()
 client: Bot = Bot(command_prefix="", intents=intents)
 logger = Logger("discord")
 # tree = app_commands.CommandTree(client)
-
-
-def _relative_discord_timestamp(timestamp: str | int | float | None) -> str | None:
-    if timestamp is None:
-        return None
-
-    try:
-        if isinstance(timestamp, str):
-            parsed = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
-            return f"<t:{int(parsed.timestamp())}:R>"
-
-        return f"<t:{int(timestamp)}:R>"
-    except (TypeError, ValueError):
-        return None
-
-
-async def _assign_roles_for_guild_ids(user_id: int, guild_ids: list[int], *, skip_guild_id: int | None = None) -> None:
-    role_cog: RoleCog | None = client.get_cog("RoleCog")
-    if role_cog is None:
-        return
-
-    for guild_id in guild_ids:
-        if skip_guild_id is not None and guild_id == skip_guild_id:
-            continue
-
-        guild = client.get_guild(guild_id)
-        if guild is None:
-            continue
-
-        member = guild.get_member(user_id)
-        if member is None:
-            try:
-                member = await guild.fetch_member(user_id)
-            except (discord.Forbidden, discord.HTTPException, discord.NotFound):
-                member = None
-
-        if member is not None:
-            await role_cog.assign_roles(member)
-
-
-@client.tree.command(
-    name="link",
-    description="Link your Discord account to a Steam account.",
-    guilds=[discord.Object(id=guild_id) for guild_id in Config.test_guild],
-)
-async def link(interaction: discord.Interaction):
-    discord_id = interaction.user.id
-    session_id = str(uuid4())
-    logger.info("Created linking session", session_id=session_id, discord_id=discord_id)
-    linked_session = create_linked_session(session_id=session_id, discord_id=discord_id)
-    link_url = generate_link_url(session_id)
-    embed = discord.Embed(
-        title="Link your steam account.",
-        description="Click the 'Authenticate' button below to link your account.",
-        color=discord.Color.blue(),
-    )
-    view = LinkView(link_url=link_url, on_cancel=lambda: remove_linked_session_by_id(linked_session.session_id))
-    await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
-
-    async def handler(steam_id, mapping_message: str | None = None):
-        try:
-            message = await interaction.original_response()
-            logger.info(f'Linked Discord user <name="{interaction.user.name}" id={discord_id}> to SteamID = {steam_id}')
-
-            sync_result = await sync_user_memberships(discord_id, client)
-            if sync_result["removed_guild_ids"] or sync_result["created_guild_ids"]:
-                logger.info(
-                    "Synced Discord memberships after linking",
-                    discord_id=discord_id,
-                    removed_guild_ids=sync_result["removed_guild_ids"],
-                    created_guild_ids=sync_result["created_guild_ids"],
-                )
-
-            description = f"Your account was linked to SteamID: {steam_id}"
-            if mapping_message:
-                description = f"{description}\n\n{mapping_message}"
-
-            embed = discord.Embed(
-                title="You have linked your Discord account. Run `/verify` to verify your rank.",
-                description=description,
-                color=discord.Color.green(),
-            )
-
-            await message.edit(embed=embed, view=None)
-        except Exception as e:
-            logger.error(f'Failed to link Steam account for <name="{interaction.user.name}" id={discord_id}>: {e}')
-
-    async def event(*args, **kwargs):
-        client.loop.create_task(handler(*args, **kwargs))
-
-    linked_session.setEventHandler(event)
 
 
 @client.tree.command(
@@ -169,59 +78,103 @@ async def unlink(interaction: discord.Interaction):
     description="Verify your rank and receive the respective role.",
     guilds=[discord.Object(id=guild_id) for guild_id in Config.test_guild],
 )
-# @app_commands.describe(score="The score you want to test")
 async def verify(
     interaction: discord.Interaction,
 ):
     await interaction.response.defer(thinking=False)
-    embed: discord.Embed = None
+    discord_id = interaction.user.id
 
-    if get_steam_id(interaction.user.id) is not None:
+    # Check if user has a linked Steam account
+    if get_steam_id(discord_id) is None:
+        # User is not linked - initiate the linking flow with a callback to verify after linking
+        async def on_link_complete(steam_id, mapping_message: str | None = None):
+            try:
+                if interaction.client is not None:
+                    sync_result = await sync_user_memberships(discord_id, interaction.client)
+                    if sync_result["removed_guild_ids"] or sync_result["created_guild_ids"]:
+                        logger.debug(
+                            "Synced Discord memberships after linking in verify",
+                            discord_id=discord_id,
+                            removed_guild_ids=sync_result["removed_guild_ids"],
+                            created_guild_ids=sync_result["created_guild_ids"],
+                        )
+
+                # Now perform the verification
+                await perform_verification(interaction)
+            except Exception as e:
+                logger.error(f"Failed to verify user after linking: {e}")
+
+        # Create a new interaction-like object for the linking flow since we already deferred
+        # We'll send a followup message with the linking UI instead
+        embed = discord.Embed(
+            title="Link your steam account.",
+            description="Click the 'Authenticate' button below to link your account.",
+            color=discord.Color.blue(),
+        )
+        session_id = str(uuid4())
+        logger.info("Created linking session from verify", session_id=session_id, discord_id=discord_id)
+        linked_session = create_linked_session(session_id=session_id, discord_id=discord_id)
+        link_url = generate_link_url(session_id)
+        view = LinkView(link_url=link_url, on_cancel=lambda: remove_linked_session_by_id(linked_session.session_id))
+
+        await interaction.followup.send(embed=embed, view=view, ephemeral=True)
+
+        async def handler(steam_id, mapping_message: str | None = None):
+            try:
+                logger.info(
+                    f'Linked Discord user <name="{interaction.user.name}" id={discord_id}> to SteamID = {steam_id}'
+                )
+
+                if interaction.client is not None:
+                    sync_result = await sync_user_memberships(discord_id, interaction.client)
+                    if sync_result["removed_guild_ids"] or sync_result["created_guild_ids"]:
+                        logger.info(
+                            "Synced Discord memberships after linking via verify",
+                            discord_id=discord_id,
+                            removed_guild_ids=sync_result["removed_guild_ids"],
+                            created_guild_ids=sync_result["created_guild_ids"],
+                        )
+
+                message = await interaction.original_response()
+
+                # Send a new embed showing the rank verification
+                embed = discord.Embed(
+                    title="You have successfully linked your accounts.",
+                    description="Your account was linked to SteamID `{steam_id}`. Now verifying your rank...".format(
+                        steam_id=steam_id
+                    ),
+                    color=discord.Color.blue(),
+                )
+                followup = await interaction.followup.send(embed=embed, ephemeral=True)
+
+                # Perform verification
+                await perform_verification(interaction)
+
+                # Delete the intermediate message
+                try:
+                    await followup.delete()
+                except Exception:
+                    pass
+            except Exception as e:
+                logger.error(f'Failed to link and verify for <name="{interaction.user.name}" id={discord_id}>: {e}')
+
+        async def event(*args, **kwargs):
+            client.loop.create_task(handler(*args, **kwargs))
+
+        linked_session.setEventHandler(event)
+    else:
+        # User is linked - proceed with verification
         if interaction.client is not None:
-            sync_result = await sync_user_memberships(interaction.user.id, interaction.client)
+            sync_result = await sync_user_memberships(discord_id, interaction.client)
             if sync_result["removed_guild_ids"] or sync_result["created_guild_ids"]:
                 logger.debug(
                     "Synced Discord memberships during verification",
-                    discord_id=interaction.user.id,
+                    discord_id=discord_id,
                     removed_guild_ids=sync_result["removed_guild_ids"],
                     created_guild_ids=sync_result["created_guild_ids"],
                 )
 
-        role_cog: RoleCog = client.get_cog("RoleCog")
-        (succ, message) = await role_cog.assign_roles(interaction.user)
-        if succ:
-            result: RoleAssignmentResult = message
-            rank = result.rank.name
-            role: discord.Role = discord.utils.get(interaction.guild.roles, id=result.role_id)
-            file = discord.File(f"./src/img/{rank.lower()}.png", filename=f"{rank.lower()}.png")
-            embed = discord.Embed(
-                title="Your rank has been verified.",
-                description=f"**{rank}** - `{result.score}` - #{result.position}",
-                color=role.color,
-            )
-            embed.set_image(url=f"attachment://{rank.lower()}.png")
-
-            leaderboard_timestamp = _relative_discord_timestamp(result.updated_at)
-            if leaderboard_timestamp is not None:
-                field_name = "Leaderboard updated" if result.source == "leaderboard_api" else "Database last updated"
-                embed.add_field(name=field_name, value=leaderboard_timestamp, inline=False)
-
-            await interaction.followup.send(embed=embed, file=file)
-        else:
-            embed = discord.Embed(
-                title="An error occurred.",
-                description=message,
-                color=discord.Color.red(),
-            )
-            await interaction.followup.send(embed=embed)
-    else:
-        embed = discord.Embed(
-            title="Link a Steam account.",
-            description="Your Discord account is not linked to a Steam account. Run the `/link` command to link your steam account.",
-            color=discord.Color.red(),
-        )
-
-        await interaction.followup.send(embed=embed)
+        await perform_verification(interaction)
 
 
 @client.tree.command(
@@ -259,7 +212,7 @@ async def check(interaction: discord.Interaction, member: discord.Member):
                 embed.add_field(name="ELO", value=standing.stat_value, inline=False)
                 embed.add_field(name="Leaderboard Position", value=f"#{standing.position}", inline=False)
 
-                leaderboard_timestamp = _relative_discord_timestamp(standing.timestamp)
+                leaderboard_timestamp = relative_discord_timestamp(standing.timestamp)
                 if leaderboard_timestamp is not None:
                     embed.add_field(name="Leaderboard updated", value=leaderboard_timestamp, inline=False)
 
@@ -280,7 +233,7 @@ async def check(interaction: discord.Interaction, member: discord.Member):
                 embed.add_field(name="ELO", value=ranked_data.score, inline=False)
                 embed.add_field(name="Leaderboard Position", value=f"#{ranked_data.rank}", inline=False)
 
-                last_updated = _relative_discord_timestamp(last_updated_at())
+                last_updated = relative_discord_timestamp(last_updated_at())
                 if last_updated is not None:
                     embed.add_field(name="Database last updated", value=last_updated, inline=False)
 

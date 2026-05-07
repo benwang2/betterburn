@@ -24,7 +24,7 @@ class LinkView(discord.ui.View):
         self.on_cancel()
         embed = discord.Embed(
             title="Linking session ended",
-            description="You have canceled the linking process. If you wish to try again, use the `/link` command.",
+            description="You have canceled the linking process. If you wish to try again, use the `/verify` command.",
             color=discord.Color.red(),
         )
         await interaction.response.edit_message(embed=embed, view=None)
